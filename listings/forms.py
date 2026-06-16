@@ -55,6 +55,9 @@ class VehicleForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['num_doors'].initial = 4
         self.fields['num_seats'].initial = 5
+        # Formda gösterilmeyen / opsiyonel teknik alanlar
+        self.fields['num_doors'].required = False
+        self.fields['num_seats'].required = False
         self.fields['horsepower'].required = False
         self.fields['torque'].required = False
         self.fields['trunk_volume'].required = False
@@ -64,6 +67,13 @@ class VehicleForm(forms.ModelForm):
         self.fields['damage_description'].required = False
         self.fields['paint_changed_parts'].required = False
         self.fields['replaced_parts'].required = False
+
+    def clean_num_doors(self):
+        # Boş bırakılırsa model varsayılanını kullan
+        return self.cleaned_data.get('num_doors') or 4
+
+    def clean_num_seats(self):
+        return self.cleaned_data.get('num_seats') or 5
 
 
 class PhotoForm(forms.ModelForm):

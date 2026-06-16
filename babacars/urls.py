@@ -9,6 +9,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     # Spesifik prefix'li uygulamalar önce gelir
     path('accounts/', include('accounts.urls', namespace='accounts')),
+    path('auth/', include('allauth.urls')),  # Google ile giriş (allauth)
     path('offers/', include('offers.urls', namespace='offers')),
     path('bookings/', include('bookings.urls', namespace='bookings')),
     path('messaging/', include('messaging.urls', namespace='messaging')),

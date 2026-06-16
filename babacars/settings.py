@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     # Third party
     'rest_framework',
     'rest_framework.authtoken',
@@ -39,6 +40,12 @@ INSTALLED_APPS = [
     'simple_history',
     'debug_toolbar',
     'drf_spectacular',
+    'cloudinary',
+    'cloudinary_storage',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
     # Local
     'accounts',
     'listings',
@@ -53,6 +60,8 @@ INSTALLED_APPS = [
     'controlpanel',
 ]
 
+SITE_ID = 1
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -65,6 +74,7 @@ MIDDLEWARE = [
     'simple_history.middleware.HistoryRequestMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'babacars.middleware.OfferExpiryMiddleware',
     'babacars.middleware.BookingCompletionMiddleware',
     'babacars.middleware.AlertsCheckMiddleware',
@@ -118,10 +128,22 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Depolama: CLOUDINARY_URL varsa medya Cloudinary'ye (kalıcı), yoksa yerel diske
+_use_cloudinary = bool(os.environ.get('CLOUDINARY_URL'))
+STORAGES = {
+    'default': {
+        'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage'
+                   if _use_cloudinary else
+                   'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -160,7 +182,27 @@ else:
 AUTHENTICATION_BACKENDS = [
     'axes.backends.AxesStandaloneBackend',
     'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',  # Google ile giriş
 ]
+
+# ── django-allauth (Google ile giriş) ──────────────────────────────
+ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
+ACCOUNT_EMAIL_VERIFICATION = 'none'   # kendi doğrulama akışımız var
+ACCOUNT_UNIQUE_EMAIL = True
+SOCIALACCOUNT_LOGIN_ON_GET = True      # ara onay sayfası olmadan direkt yönlendir
+LOGIN_REDIRECT_URL = 'listings:index'
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+        'APP': {
+            'client_id': os.environ.get('GOOGLE_CLIENT_ID', ''),
+            'secret': os.environ.get('GOOGLE_CLIENT_SECRET', ''),
+            'key': '',
+        },
+    }
+}
 AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = 1  # 1 saat
 AXES_LOCKOUT_TEMPLATE = 'accounts/lockout.html'
