@@ -163,6 +163,9 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 12,
 }
 
+# Doğrulama maillerindeki linkin tam adresi (production'da kendi domain'in)
+SITE_URL = os.environ.get('SITE_URL', 'http://127.0.0.1:8000')
+
 # E-posta ayarları — .env dosyasına EMAIL_HOST_USER ve EMAIL_HOST_PASSWORD ekleyin
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
