@@ -175,6 +175,7 @@ if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
     EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
     EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
     EMAIL_USE_TLS = True
+    EMAIL_TIMEOUT = 20  # SMTP yanıt vermezse 20 sn sonra vazgeç (sonsuz takılma olmasın)
     DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 else:
     # Credentials yoksa terminale yaz (geliştirme)
