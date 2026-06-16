@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block title %}{{ conversation.listing.title }} – Mesaj{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 py-8 flex flex-col" style="height: calc(100vh - 4rem)">
+  <!-- Header -->
+  <div class="flex items-center gap-4 bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-4 shrink-0">
+    <a href="{% url 'messaging:inbox' %}" class="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+      <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+    </a>
+    <div class="flex-1 min-w-0">
+      <a href="{% url 'listings:detail' conversation.listing.slug %}" class="font-bold text-slate-900 hover:text-primary-600 line-clamp-1 transition-colors">{{ conversation.listing.title }}</a>
+      <p class="text-xs text-slate-400 mt-0.5">{{ conversation.buyer.email }} ↔ {{ conversation.seller.email }}</p>
+    </div>
+    {% if conversation.is_active %}
+      <form method="POST" action="{% url 'messaging:close' conversation.id %}">
+        {% csrf_token %}
+        <button type="submit" class="text-xs text-slate-400 hover:text-red-500 transition-colors px-3 py-1.5 border border-slate-200 rounded-lg">Kapat</button>
+      </form>
+    {% else %}
+      <span class="text-xs text-slate-400 bg-slate-100 px-3 py-1.5 rounded-lg">Kapalı</span>
+    {% endif %}
+  </div>
+
+  <!-- Messages Area -->
+  <div class="flex-1 overflow-y-auto space-y-3 px-1 mb-4" id="messages-container">
+    {% for msg in messages %}
+      <div class="flex {% if msg.sender == user %}justify-end{% else %}justify-start{% endif %}">
+        <div class="max-w-[80%]">
+          {% if msg.is_deleted %}
+            <div class="px-4 py-2.5 bg-slate-100 rounded-2xl text-sm text-slate-400 italic">Bu mesaj silindi.</div>
+          {% else %}
+            <div class="px-4 py-2.5 text-sm {% if msg.sender == user %}bubble-sent{% else %}bubble-recv{% endif %}">
+              {{ msg.body }}
+            </div>
+          {% endif %}
+          <p class="text-xs text-slate-400 mt-1 {% if msg.sender == user %}text-right{% endif %}">
+            {{ msg.created_at|time:"H:i" }}
+            {% if msg.sender == user and not msg.is_deleted %}
+              · <button onclick="deleteMessage({{ msg.id }})" class="hover:text-red-500 transition-colors">Sil</button>
+            {% endif %}
+          </p>
+        </div>
+      </div>
+    {% empty %}
+      <div class="text-center text-slate-400 text-sm py-8">Henüz mesaj yok. İlk mesajı siz gönderin.</div>
+    {% endfor %}
+  </div>
+
+  <!-- Message Input -->
+  {% if conversation.is_active %}
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-3 shrink-0">
+      <form id="message-form" class="flex gap-2">
+        {% csrf_token %}
+        <textarea id="msg-input" class="form-input flex-1 resize-none" rows="1" placeholder="Mesajınızı yazın..." maxlength="2000"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();document.getElementById('message-form').dispatchEvent(new Event('submit'));}"></textarea>
+        <button type="submit" class="btn-primary bg-primary-600 hover:bg-primary-700 text-white font-semibold px-4 py-2.5 rounded-xl shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+        </button>
+      </form>
+    </div>
+  {% endif %}
+</div>
+
+<span id="delete-msg-url" data-url="/messaging/message/0/delete/" class="hidden"></span>
+<script>
+// Scroll to bottom
+const container = document.getElementById('messages-container');
+if (container) container.scrollTop = container.scrollHeight;
+
+// Send message via AJAX
+document.getElementById('message-form')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const input = document.getElementById('msg-input');
+  const body = input.value.trim();
+  if (!body) return;
+  input.value = '';
+  input.style.height = 'auto';
+
+  try {
+    const res = await fetch('{% url "messaging:send" conversation.id %}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() },
+      body: JSON.stringify({ body }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      const div = document.createElement('div');
+      div.className = 'flex justify-end';
+      div.innerHTML = `
+        <div class="max-w-[80%]">
+          <div class="px-4 py-2.5 text-sm bubble-sent">${data.body}</div>
+          <p class="text-xs text-slate-400 mt-1 text-right">${new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})}</p>
+        </div>`;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    } else {
+      showToast(data.error || 'Mesaj gönderilemedi.', 'error');
+    }
+  } catch(err) {
+    showToast('Bağlantı hatası.', 'error');
+  }
+});
+
+// Delete message
+async function deleteMessage(msgId) {
+  if (!confirm('Mesajı silmek istediğinize emin misiniz?')) return;
+  const baseUrl = document.getElementById('delete-msg-url').dataset.url;
+  const url = baseUrl.replace('/0/', `/${msgId}/`);
+  const { ok, data } = await apiPost(url);
+  if (ok) location.reload();
+  else showToast(data.error || 'Silinemedi.', 'error');
+}
+
+// Auto-resize textarea
+document.getElementById('msg-input')?.addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+});
+</script>
+{% endblock %}

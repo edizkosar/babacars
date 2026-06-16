@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}Alarmlarım{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <h1 class="text-2xl font-bold text-ink mb-6">Alarmlarım</h1>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Price Alerts -->
+    <div class="card p-5">
+      <h2 class="font-bold text-ink text-lg mb-4">Fiyat Alarmları</h2>
+      {% if price_alerts %}
+        <div class="space-y-3">
+          {% for alert in price_alerts %}
+            <div class="flex items-center justify-between bg-beige rounded-lg p-3">
+              <div>
+                <a href="{% url 'listings:detail' alert.listing.slug %}" class="font-semibold text-ink hover:text-gold text-sm">{{ alert.listing.title }}</a>
+                <p class="text-xs text-ink-light mt-1">Hedef: {{ alert.target_price|floatformat:0 }} TL</p>
+              </div>
+              <button onclick="deleteAlert({{ alert.id }})" class="text-red-500 hover:text-red-700 text-sm font-medium">Sil</button>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-ink-light text-sm">Henuz fiyat alarmi yok.</p>
+      {% endif %}
+    </div>
+
+    <!-- Saved Searches -->
+    <div class="card p-5">
+      <h2 class="font-bold text-ink text-lg mb-4">Kayıtlı Aramalar</h2>
+      {% if saved_searches %}
+        <div class="space-y-3">
+          {% for search in saved_searches %}
+            <div class="flex items-center justify-between bg-beige rounded-lg p-3">
+              <div>
+                <p class="font-semibold text-ink text-sm">{{ search.name }}</p>
+                <p class="text-xs text-ink-light mt-1">{{ search.created_at|date:"d.m.Y" }}</p>
+              </div>
+              <button onclick="deleteSearch({{ search.id }})" class="text-red-500 hover:text-red-700 text-sm font-medium">Sil</button>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-ink-light text-sm">Henuz kayitli arama yok.</p>
+      {% endif %}
+    </div>
+
+    <!-- Watchlist -->
+    <div class="card p-5">
+      <h2 class="font-bold text-ink text-lg mb-4">İzleme Listesi</h2>
+      {% if watchlist %}
+        <div class="space-y-3">
+          {% for item in watchlist %}
+            <div class="flex items-center justify-between bg-beige rounded-lg p-3">
+              <div>
+                <a href="{% url 'listings:detail' item.listing.slug %}" class="font-semibold text-ink hover:text-gold text-sm">{{ item.listing.title }}</a>
+                <p class="text-xs text-ink-light mt-1">{{ item.listing.price|floatformat:0 }} TL</p>
+              </div>
+              <button onclick="toggleWatch({{ item.listing.id }})" class="text-red-500 hover:text-red-700 text-sm font-medium">Cikar</button>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-ink-light text-sm">Izleme listeniz bos.</p>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+<script>
+async function deleteAlert(alertId) {
+  const res = await fetch(`/alerts/price-alert/${alertId}/delete/`, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': getCSRF() },
+  });
+  if (res.ok) { showToast('Alarm silindi.', 'success'); location.reload(); }
+  else { const d = await res.json(); showToast(d.error || 'Hata.', 'error'); }
+}
+async function deleteSearch(searchId) {
+  const res = await fetch(`/alerts/save-search/${searchId}/delete/`, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': getCSRF() },
+  });
+  if (res.ok) { showToast('Arama silindi.', 'success'); location.reload(); }
+  else { const d = await res.json(); showToast(d.error || 'Hata.', 'error'); }
+}
+async function toggleWatch(listingId) {
+  const res = await fetch(`/alerts/watchlist/${listingId}/`, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': getCSRF() },
+  });
+  if (res.ok) { showToast('Guncellendi.', 'success'); location.reload(); }
+  else { const d = await res.json(); showToast(d.error || 'Hata.', 'error'); }
+}
+</script>
+{% endblock %}

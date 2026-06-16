@@ -1,0 +1,6 @@
+[tool.pyrefly]
+project_includes = ["."]
+search_path = ["."]
+python_version = "3.12"
+python_interpreter = "C:\\piton\\Python3_12_2\\python.exe"
+site_package_path = ["C:\\piton\\Python3_12_2\\Lib\\site-packages"]

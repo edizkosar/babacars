@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Satıcı Ol{% endblock %}
+{% block content %}
+<div class="max-w-lg mx-auto px-4 sm:px-6 py-12">
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-8">
+    <div class="text-center mb-6">
+      
+      <h1 class="text-2xl font-black text-slate-900">Satıcı Hesabı Aç</h1>
+      <p class="text-slate-500 text-sm mt-2">İlan yayınlamak ve teklif almak için satıcı profilini oluştur.</p>
+    </div>
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 text-sm">
+      <p class="font-semibold text-amber-800 mb-1">Gereksinimler:</p>
+      <ul class="text-amber-700 space-y-1">
+        <li class="flex items-center gap-2"><span class="font-semibold">{% if user.email_verified %}Onaylandı{% else %}Onaylanmadı{% endif %}</span> Doğrulanmış e-posta</li>
+        <li class="flex items-center gap-2"><span class="font-semibold">{% if user.phone %}Onaylandı{% else %}Onaylanmadı{% endif %}</span> Kayıtlı telefon numarası</li>
+      </ul>
+    </div>
+    <form method="POST" class="space-y-4">
+      {% csrf_token %}
+      <div><label class="text-sm font-semibold text-slate-700 mb-1.5 block">Telefon Numarası</label>{{ form.phone }}</div>
+      <div><label class="text-sm font-semibold text-slate-700 mb-1.5 block">Kendinizi tanıtın <span class="text-slate-400 font-normal">(isteğe bağlı)</span></label>{{ form.bio }}</div>
+      {% if form.errors %}
+        <div class="bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 text-sm">
+          {% for field, errors in form.errors.items %}{% for error in errors %}<p>{{ error }}</p>{% endfor %}{% endfor %}
+        </div>
+      {% endif %}
+      <button type="submit" class="btn-primary w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 rounded-xl">Satıcı Profilimi Oluştur</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

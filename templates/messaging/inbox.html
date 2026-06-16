@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Gelen Kutusu{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <h1 class="text-2xl font-bold text-slate-900 mb-6">Mesajlar</h1>
+  {% if conversations %}
+    <div class="space-y-2">
+      {% for conv in conversations %}
+        <a href="{% url 'messaging:conversation' conv.id %}"
+          class="flex items-center gap-4 bg-white rounded-2xl border border-slate-100 shadow-sm p-4 hover:border-primary-200 hover:shadow-md transition-all group">
+          <div class="w-11 h-11 rounded-full bg-gradient-to-br from-primary-500 to-violet-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
+            {{ conv.buyer.email|first|upper }}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between gap-2">
+              <p class="font-semibold text-slate-900 truncate">{{ conv.listing.title }}</p>
+              <p class="text-xs text-slate-400 shrink-0">{{ conv.updated_at|timesince }} önce</p>
+            </div>
+            <p class="text-sm text-slate-500 truncate mt-0.5">
+              {{ conv.buyer.email }} ↔ {{ conv.seller.email }}
+            </p>
+          </div>
+          <div class="shrink-0 text-slate-300 group-hover:text-primary-400 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="text-center py-20 bg-white rounded-2xl border border-slate-100 shadow-sm">
+      
+      <h3 class="text-xl font-semibold text-slate-700 mb-2">Mesajınız yok</h3>
+      <p class="text-slate-500 text-sm">İlan detay sayfasından satıcılara mesaj gönderin.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

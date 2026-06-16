@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% block title %}İlanlar{% endblock %}
+
+{% block content %}
+<!-- ─── HERO ─── -->
+<section class="hero-dark min-h-[90vh] flex flex-col justify-center relative px-4 pt-20 pb-12">
+  <div class="max-w-7xl mx-auto w-full relative z-10 flex flex-col items-center justify-center text-center">
+    
+    <div class="mb-4">
+      <span class="section-label">TÜRKİYE'NİN</span>
+    </div>
+    
+    <h1 class="text-6xl md:text-8xl lg:text-9xl font-black tracking-tighter leading-[0.9] mb-8 hero-title overflow-hidden">
+      <div class="hero-word">EN İYİ</div>
+      <div class="hero-word text-gold">ARAÇ PLATFORMU</div>
+    </h1>
+    
+    <p class="text-sm text-slate-400 max-w-md mx-auto mb-12 hero-fade">
+      Binlerce araç arasından hayalinizdeki aracı en iyi fiyat garantisi ve güvenli teklif sistemiyle anında bulun.
+    </p>
+
+    <!-- Search Bar (Glass effect) -->
+    <form action="{% url 'listings:search' %}" method="GET" class="w-full max-w-4xl bg-white/5 backdrop-blur-md border border-white/10 p-2 sm:p-3 flex flex-col sm:flex-row gap-2 rounded hero-fade">
+      <select name="listing_type" class="form-select bg-transparent border-white/20 text-white flex-1 min-w-0" style="color:#FAF7F2; background:rgba(0,0,0,0.5)">
+        <option value="" style="color:#111111">Tüm İlanlar</option>
+        <option value="sale" style="color:#111111">Satılık</option>
+        <option value="rental" style="color:#111111">Kiralık</option>
+      </select>
+      <input name="make" type="text" placeholder="Marka (BMW, Toyota...)" class="form-input bg-transparent border-white/20 text-white placeholder-white/50 flex-1 min-w-0" />
+      <input name="city" type="text" placeholder="Şehir" class="form-input bg-transparent border-white/20 text-white placeholder-white/50 flex-[0.6] min-w-0" />
+      <button type="submit" class="btn btn-gold px-8 whitespace-nowrap border-0">
+        ARA
+      </button>
+    </form>
+
+    <!-- Stats -->
+    <div class="mt-24 grid grid-cols-3 gap-8 text-center border-t border-white/10 pt-8 hero-fade w-full max-w-3xl">
+      <div>
+        <p class="text-3xl md:text-4xl font-black text-white"><span data-counter="{{ page_obj.paginator.count|default:0 }}">0</span>+</p>
+        <p class="text-xs font-bold tracking-widest text-gold mt-2 uppercase">İlan</p>
+      </div>
+      <div class="relative">
+        <div class="absolute left-0 top-0 bottom-0 w-px bg-gold/30"></div>
+        <p class="text-3xl md:text-4xl font-black text-white"><span data-counter="10000">0</span>+</p>
+        <p class="text-xs font-bold tracking-widest text-gold mt-2 uppercase">Kullanıcı</p>
+        <div class="absolute right-0 top-0 bottom-0 w-px bg-gold/30"></div>
+      </div>
+      <div>
+        <p class="text-3xl md:text-4xl font-black text-white"><span data-counter="50">0</span>+</p>
+        <p class="text-xs font-bold tracking-widest text-gold mt-2 uppercase">Şehir</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FEATURED SECTION ─── -->
+<section class="bg-beige py-24 border-b border-warm-border">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-16">
+      <h2 class="section-label">NEDEN BABACARS</h2>
+      <p class="section-title">Güven, Hız ve Lüks</p>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="bg-white p-8 border border-warm-border card-hover" style="border-radius:0;" data-reveal>
+        <p class="text-5xl font-black text-gold opacity-30 mb-6">01</p>
+        <h3 class="text-xl font-bold text-ink mb-3">Güvenli Teklif</h3>
+        <p class="text-sm text-ink-light leading-relaxed">Şeffaf teklif sistemiyle satıcıyla doğrudan iletişim kurun ve en iyi fiyata ulaşın.</p>
+      </div>
+      <div class="bg-white p-8 border border-warm-border card-hover" style="border-radius:0;transition-delay:.1s;" data-reveal>
+        <p class="text-5xl font-black text-gold opacity-30 mb-6">02</p>
+        <h3 class="text-xl font-bold text-ink mb-3">Premium İlanlar</h3>
+        <p class="text-sm text-ink-light leading-relaxed">Özenle seçilmiş, doğrulanmış ve detaylı ekspertiz raporlarına sahip üst segment araçlar.</p>
+      </div>
+      <div class="bg-white p-8 border border-warm-border card-hover" style="border-radius:0;transition-delay:.2s;" data-reveal>
+        <p class="text-5xl font-black text-gold opacity-30 mb-6">03</p>
+        <h3 class="text-xl font-bold text-ink mb-3">Hızlı İşlem</h3>
+        <p class="text-sm text-ink-light leading-relaxed">Gereksiz bürokrasiden uzak, tamamen dijitalleştirilmiş alım, satım ve kiralama süreçleri.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── LISTING GRID ─── -->
+<section class="bg-white max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+  <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-12 gap-4">
+    <div>
+      <h2 class="section-label">VİTRİN</h2>
+      <p class="section-title">Son İlanlar</p>
+    </div>
+    <a href="{% url 'listings:search' %}" class="btn btn-outline btn-sm">Tümünü Gör</a>
+  </div>
+
+  {% if listings %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {% for listing in listings %}
+        {% include 'listings/_listing_card.html' with listing=listing %}
+      {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+      <div class="flex justify-center gap-2 mt-16">
+        {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-outline btn-sm">Geri</a>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+          {% if page_obj.number == num %}
+            <span class="btn btn-primary btn-sm pointer-events-none">{{ num }}</span>
+          {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <a href="?page={{ num }}" class="btn btn-outline btn-sm">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}" class="btn btn-outline btn-sm">İleri</a>
+        {% endif %}
+      </div>
+    {% endif %}
+
+  {% else %}
+    <div class="text-center py-24 border border-warm-border bg-beige" style="border-radius:0;">
+      <h3 class="text-2xl font-bold text-ink mb-2">Henüz ilan yok</h3>
+      <p class="text-ink-light mb-8">İlk ilanı siz ekleyin ve vitrinde yerinizi alın.</p>
+      {% if user.is_authenticated and user.role == 'seller' %}
+        <a href="{% url 'listings:create' %}" class="btn btn-primary">İlan Ver</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</section>
+
+<!-- ─── CTA BANNER ─── -->
+{% if not user.is_authenticated %}
+<section class="bg-beige py-24 border-t border-warm-border text-center px-4">
+  <div class="max-w-3xl mx-auto">
+    <h2 class="section-label mb-2">BİZE KATILIN</h2>
+    <p class="section-title mb-6 text-ink">Hemen Ücretsiz Üye Ol</p>
+    <p class="text-ink-light text-lg mb-10 max-w-xl mx-auto">Premium araç alım, satım ve kiralama deneyimini yaşamak için BabaCars ailesine katılın.</p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-lg">Kayıt Ol</a>
+      <a href="{% url 'accounts:login' %}" class="btn btn-outline btn-lg">Giriş Yap</a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    if (typeof gsap !== 'undefined') {
+      // Hero animation
+      gsap.from('.hero-word', {
+        y: 100,
+        opacity: 0,
+        duration: 1,
+        stagger: 0.2,
+        ease: 'power4.out',
+        delay: 0.2
+      });
+      gsap.from('.hero-fade', {
+        y: 30,
+        opacity: 0,
+        duration: 1,
+        stagger: 0.2,
+        ease: 'power3.out',
+        delay: 0.8
+      });
+    }
+  });
+</script>
+{% endblock %}

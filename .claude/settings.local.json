@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(venv\\\\Scripts\\\\python.exe -m pip install pyotp qrcode django-axes django-ratelimit drf-spectacular django-simple-history django-debug-toolbar)",
+      "PowerShell(Invoke-WebRequest -Uri \"http://127.0.0.1:8000/api/docs/\" -UseBasicParsing)",
+      "PowerShell(Invoke-WebRequest -Uri \"http://127.0.0.1:8000/accounts/2fa/\" -UseBasicParsing)",
+      "PowerShell(\"Home: \" + \\(Invoke-WebRequest \"http://127.0.0.1:8000/\" -UseBasicParsing\\).StatusCode; \"CSS: \" + \\(Invoke-WebRequest \"http://127.0.0.1:8000/static/css/effects.css\" -UseBasicParsing\\).StatusCode; \"JS: \" + \\(Invoke-WebRequest \"http://127.0.0.1:8000/static/js/effects.js\" -UseBasicParsing\\).StatusCode; $home2 = \\(Invoke-WebRequest \"http://127.0.0.1:8000/\" -UseBasicParsing\\).Content; \"preloader var mi: \" + \\($home2 -match 'id=\"preloader\"'\\); \"counter var mi: \" + \\($home2 -match 'data-counter'\\); \"quickview var mi: \" + \\($home2 -match 'quickview-trigger'\\))",
+      "Bash(xargs -n1 basename)",
+      "Bash(cp -r /c/Users/kosar/Downloads/babacars_arda_extracted/babacars/controlpanel /c/Users/kosar/OneDrive/Masaüstü/babacars/babacars/controlpanel)",
+      "Bash(cp -r /c/Users/kosar/Downloads/babacars_arda_extracted/babacars/templates/controlpanel /c/Users/kosar/OneDrive/Masaüstü/babacars/babacars/templates/controlpanel)",
+      "Bash(cp /c/Users/kosar/Downloads/babacars_arda_extracted/babacars/api/permissions.py /c/Users/kosar/OneDrive/Masaüstü/babacars/babacars/api/permissions.py)",
+      "Bash(cp /c/Users/kosar/Downloads/babacars_arda_extracted/babacars/.env /c/Users/kosar/OneDrive/Masaüstü/babacars/babacars/.env)",
+      "Bash(cp /c/Users/kosar/Downloads/babacars_arda_extracted/babacars/.env.example /c/Users/kosar/OneDrive/Masaüstü/babacars/babacars/.env.example)",
+      "PowerShell(cd \"C:\\\\Users\\\\kosar\\\\OneDrive\\\\Masaüstü\\\\babacars\\\\babacars\"; $env:PYTHONIOENCODING=\"utf-8\"; .\\\\venv\\\\Scripts\\\\python.exe -c \"import os,django; os.environ.setdefault\\('DJANGO_SETTINGS_MODULE','babacars.settings'\\); django.setup\\(\\); from listings.models import Listing; from collections import Counter; c=Counter\\(Listing.objects.values_list\\('city',flat=True\\)\\); print\\(list\\(c.most_common\\(\\)\\)\\)\")",
+      "Bash(ls listings/management/)",
+      "Bash(ls listings/management/commands/)"
+    ]
+  }
+}

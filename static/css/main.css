@@ -1,0 +1,87 @@
+/* BabaCars – main.css */
+
+/* ─── Smooth scroll ─── */
+html { scroll-behavior: smooth; }
+
+/* ─── Form inputs (used with Tailwind classes via forms.py widgets) ─── */
+.form-input {
+  display: block;
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: #1e293b;
+  background-color: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 0.625rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
+  font-family: 'Inter', sans-serif;
+}
+.form-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+.form-input::placeholder { color: #94a3b8; }
+
+.form-select {
+  display: block;
+  width: 100%;
+  padding: 0.625rem 2.5rem 0.625rem 0.875rem;
+  font-size: 0.9375rem;
+  color: #1e293b;
+  background-color: #ffffff;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1.25em;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 0.625rem;
+  appearance: none;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-family: 'Inter', sans-serif;
+}
+.form-select:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); }
+
+.form-radio { accent-color: #3b82f6; width: 1rem; height: 1rem; cursor: pointer; }
+
+/* ─── Car card image aspect ratio ─── */
+.car-img { aspect-ratio: 16/10; object-fit: cover; }
+
+/* ─── Photo gallery thumbnails ─── */
+.thumb-strip { display: flex; gap: .5rem; overflow-x: auto; padding-bottom: .25rem; }
+.thumb-strip::-webkit-scrollbar { height: 4px; }
+.thumb-strip::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+
+/* ─── Offer chain timeline ─── */
+.offer-chain-item::before { content: ''; display: block; width: 2px; height: 100%; background: #e2e8f0; position: absolute; left: 11px; top: 28px; }
+.offer-chain-item:last-child::before { display: none; }
+
+/* ─── Status badges ─── */
+.badge { display: inline-flex; align-items: center; padding: 0.125rem 0.625rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em; }
+.badge-active    { background: #dcfce7; color: #16a34a; }
+.badge-pending   { background: #fef9c3; color: #ca8a04; }
+.badge-accepted  { background: #dbeafe; color: #1d4ed8; }
+.badge-rejected  { background: #fee2e2; color: #dc2626; }
+.badge-cancelled { background: #f1f5f9; color: #64748b; }
+.badge-expired   { background: #f1f5f9; color: #94a3b8; }
+.badge-confirmed { background: #dbeafe; color: #1d4ed8; }
+.badge-completed { background: #dcfce7; color: #16a34a; }
+.badge-countered { background: #fae8ff; color: #9333ea; }
+.badge-sold      { background: #fee2e2; color: #dc2626; }
+.badge-rented    { background: #fae8ff; color: #9333ea; }
+
+/* ─── Chat bubble ─── */
+.bubble-sent { background: #2563eb; color: #fff; border-radius: 1rem 1rem 0.25rem 1rem; }
+.bubble-recv { background: #f1f5f9; color: #1e293b; border-radius: 1rem 1rem 1rem 0.25rem; }
+
+/* ─── Skeleton loader ─── */
+.skeleton { background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: .5rem; }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* ─── Stat cards ─── */
+.stat-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1.25rem 1.5rem; }
+
+/* ─── Page hero gradient ─── */
+.hero-gradient { background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #7c3aed 100%); }

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E-posta Doğrulama</title>
+</head>
+<body style="margin:0;padding:0;background:#F5F5F0;font-family:'Inter',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F5F0;padding:40px 0;">
+    <tr>
+      <td align="center">
+        <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #E5DDD0;">
+          <!-- Header -->
+          <tr>
+            <td style="background:#111111;padding:28px 40px;">
+              <span style="font-size:22px;font-weight:900;color:#FAF7F2;letter-spacing:-0.04em;">
+                Baba<span style="color:#C9A84C;">Cars</span>
+              </span>
+            </td>
+          </tr>
+          <!-- Body -->
+          <tr>
+            <td style="padding:40px;">
+              <h1 style="margin:0 0 12px;font-size:24px;font-weight:800;color:#111111;letter-spacing:-0.02em;">
+                E-posta Adresinizi Doğrulayın
+              </h1>
+              <p style="margin:0 0 24px;color:#6B7280;font-size:15px;line-height:1.6;">
+                Merhaba{% if user.full_name %} {{ user.full_name }}{% endif %},<br><br>
+                BabaCars'a hoş geldiniz! Hesabınızı etkinleştirmek için aşağıdaki butona tıklayın.
+              </p>
+
+              <!-- CTA Button -->
+              <table cellpadding="0" cellspacing="0" style="margin:0 0 32px;">
+                <tr>
+                  <td style="background:#C9A84C;border-radius:6px;">
+                    <a href="{{ verify_url }}"
+                       style="display:inline-block;padding:14px 32px;color:#111111;font-weight:800;font-size:14px;text-decoration:none;letter-spacing:0.05em;text-transform:uppercase;">
+                      E-postamı Doğrula
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0 0 8px;color:#9CA3AF;font-size:13px;">
+                Buton çalışmıyorsa aşağıdaki linki tarayıcınıza yapıştırın:
+              </p>
+              <p style="margin:0;word-break:break-all;">
+                <a href="{{ verify_url }}" style="color:#C9A84C;font-size:12px;">{{ verify_url }}</a>
+              </p>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="background:#F9F9F7;padding:20px 40px;border-top:1px solid #E5DDD0;">
+              <p style="margin:0;color:#9CA3AF;font-size:12px;line-height:1.5;">
+                Bu bağlantı <strong>24 saat</strong> geçerlidir. Bu isteği siz yapmadıysanız bu maili görmezden gelebilirsiniz.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

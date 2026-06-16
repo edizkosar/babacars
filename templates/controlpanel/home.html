@@ -1,0 +1,293 @@
+{% extends 'base.html' %}
+{% block title %}Yönetim Paneli{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <span class="section-label">YÖNETİM PANELİ</span>
+
+  {% include 'controlpanel/_panel_nav.html' %}
+
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
+    <div class="card p-5 text-center">
+      <p class="text-3xl font-black text-gold countup" data-target="{{ stats.total_users }}">0</p>
+      <p class="text-xs font-semibold uppercase tracking-widest text-ink-light mt-2">Kullanıcı</p>
+    </div>
+    <div class="card p-5 text-center">
+      <p class="text-3xl font-black text-gold countup" data-target="{{ stats.total_sellers }}">0</p>
+      <p class="text-xs font-semibold uppercase tracking-widest text-ink-light mt-2">Satıcı</p>
+    </div>
+    <div class="card p-5 text-center">
+      <p class="text-3xl font-black text-gold countup" data-target="{{ stats.total_listings }}">0</p>
+      <p class="text-xs font-semibold uppercase tracking-widest text-ink-light mt-2">İlan</p>
+    </div>
+    <div class="card p-5 text-center">
+      <p class="text-3xl font-black text-gold countup" data-target="{{ stats.active_listings }}">0</p>
+      <p class="text-xs font-semibold uppercase tracking-widest text-ink-light mt-2">Aktif İlan</p>
+    </div>
+    <div class="card p-5 text-center">
+      <p class="text-3xl font-black text-gold countup" data-target="{{ stats.total_offers }}">0</p>
+      <p class="text-xs font-semibold uppercase tracking-widest text-ink-light mt-2">Teklif</p>
+    </div>
+    <div class="card p-5 text-center">
+      <p class="text-3xl font-black text-gold countup" data-target="{{ stats.total_bookings }}">0</p>
+      <p class="text-xs font-semibold uppercase tracking-widest text-ink-light mt-2">Rezervasyon</p>
+    </div>
+    <div class="card p-5 text-center">
+      <p class="text-3xl font-black text-gold countup" data-target="{{ stats.total_views }}">0</p>
+      <p class="text-xs font-semibold uppercase tracking-widest text-ink-light mt-2">Görüntülenme</p>
+    </div>
+    <div class="card p-5 text-center">
+      <p class="text-3xl font-black text-gold countup" data-target="{{ stats.pending_reports }}">0</p>
+      <p class="text-xs font-semibold uppercase tracking-widest text-ink-light mt-2">Bekleyen Rapor</p>
+    </div>
+  </div>
+
+  <!-- System Summary -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
+    <div class="card p-5">
+      <p class="text-xs font-semibold uppercase tracking-widest text-ink-light mb-1">Ortalama İlan Fiyatı</p>
+      <p class="text-2xl font-black text-gold">{{ system_summary.avg_price|floatformat:0 }} TL</p>
+    </div>
+    <div class="card p-5">
+      <p class="text-xs font-semibold uppercase tracking-widest text-ink-light mb-1">En Popüler Marka</p>
+      <p class="text-xl font-black text-ink">{{ system_summary.top_make }}</p>
+      <p class="text-xs text-ink-light">{{ system_summary.top_make_count }} ilan</p>
+    </div>
+    <div class="card p-5">
+      <p class="text-xs font-semibold uppercase tracking-widest text-ink-light mb-1">En Pahalı İlan</p>
+      {% if system_summary.most_expensive %}
+        <p class="text-sm font-bold text-ink truncate">{{ system_summary.most_expensive.title }}</p>
+        <p class="text-lg font-black text-gold">{{ system_summary.most_expensive.price|floatformat:0 }} TL</p>
+      {% else %}
+        <p class="text-ink-light">-</p>
+      {% endif %}
+    </div>
+    <div class="card p-5">
+      <p class="text-xs font-semibold uppercase tracking-widest text-ink-light mb-1">En Uygun İlan</p>
+      {% if system_summary.cheapest %}
+        <p class="text-sm font-bold text-ink truncate">{{ system_summary.cheapest.title }}</p>
+        <p class="text-lg font-black text-gold">{{ system_summary.cheapest.price|floatformat:0 }} TL</p>
+      {% else %}
+        <p class="text-ink-light">-</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Charts Row 1 -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+    <div class="card p-6">
+      <h2 class="font-bold text-ink text-lg mb-4">Kullanıcı Kayıtları</h2>
+      <canvas id="signupChart" height="200"></canvas>
+    </div>
+    <div class="card p-6">
+      <h2 class="font-bold text-ink text-lg mb-4">İlan Trendi</h2>
+      <canvas id="listingChart" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- Charts Row 2 -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+    <div class="card p-6">
+      <h2 class="font-bold text-ink text-lg mb-4">En Popüler Şehirler</h2>
+      <canvas id="citiesChart" height="220"></canvas>
+    </div>
+    <div class="card p-6">
+      <h2 class="font-bold text-ink text-lg mb-4">İlan Durum Dağılımı</h2>
+      <canvas id="statusChart" height="220"></canvas>
+    </div>
+    <div class="card p-6">
+      <h2 class="font-bold text-ink text-lg mb-4">En Çok Görüntülenen İlanlar</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr class="border-b border-warm-border text-left">
+            <th class="py-2 text-xs font-semibold uppercase tracking-widest text-ink-light">Başlık</th>
+            <th class="py-2 text-xs font-semibold uppercase tracking-widest text-ink-light text-right">Görüntülenme</th>
+          </tr></thead>
+          <tbody>
+            {% for l in most_viewed %}
+            <tr class="border-b border-warm-border/50">
+              <td class="py-2.5 font-medium text-ink truncate max-w-[150px]">{{ l.title }}</td>
+              <td class="py-2.5 text-right font-bold text-gold">{{ l.view_count }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="2" class="py-4 text-center text-ink-light">Veri yok.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Sellers + Recent Activity -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+    <!-- Top Sellers -->
+    <div class="card p-6">
+      <h2 class="font-bold text-ink text-lg mb-4">En Aktif Satıcılar</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr class="border-b border-warm-border text-left">
+            <th class="py-2 text-xs font-semibold uppercase tracking-widest text-ink-light w-8">#</th>
+            <th class="py-2 text-xs font-semibold uppercase tracking-widest text-ink-light">Satıcı</th>
+            <th class="py-2 text-xs font-semibold uppercase tracking-widest text-ink-light text-right">İlan Sayısı</th>
+          </tr></thead>
+          <tbody>
+            {% for s in top_sellers %}
+            <tr class="border-b border-warm-border/50">
+              <td class="py-2.5 font-black text-gold">{{ forloop.counter }}</td>
+              <td class="py-2.5 font-medium text-ink">{{ s.email }}</td>
+              <td class="py-2.5 text-right font-bold text-ink">{{ s.listing_count }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" class="py-4 text-center text-ink-light">Veri yok.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="card p-6">
+      <h2 class="font-bold text-ink text-lg mb-4">Son Aktiviteler</h2>
+      <div class="space-y-3 max-h-80 overflow-y-auto pr-2">
+        {% for item in recent_activity %}
+        <div class="flex items-start gap-3">
+          <div class="mt-0.5 w-8 h-8 rounded-full flex items-center justify-center shrink-0
+            {% if item.type == 'user' %}bg-yellow-100{% elif item.type == 'listing' %}bg-blue-100{% else %}bg-green-100{% endif %}">
+            {% if item.type == 'user' %}
+              <svg class="w-4 h-4 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+            {% elif item.type == 'listing' %}
+              <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+            {% else %}
+              <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            {% endif %}
+          </div>
+          <div class="min-w-0">
+            <p class="text-sm text-ink leading-snug">{{ item.text }}</p>
+            <p class="text-xs text-ink-light mt-0.5">{{ item.time|timesince }} önce</p>
+          </div>
+        </div>
+        {% empty %}
+        <p class="text-sm text-ink-light text-center py-4">Henüz aktivite yok.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Users -->
+  <div class="card p-6">
+    <h2 class="font-bold text-ink text-lg mb-4">Son Kayıtlar</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead><tr class="border-b border-warm-border text-left">
+          <th class="py-2 text-xs font-semibold uppercase tracking-widest text-ink-light">Email</th>
+          <th class="py-2 text-xs font-semibold uppercase tracking-widest text-ink-light">Rol</th>
+          <th class="py-2 text-xs font-semibold uppercase tracking-widest text-ink-light">Tarih</th>
+        </tr></thead>
+        <tbody>
+          {% for u in recent_users %}
+          <tr class="border-b border-warm-border/50">
+            <td class="py-2.5 font-medium text-ink">{{ u.email }}</td>
+            <td class="py-2.5"><span class="badge bg-beige-dark text-ink text-xs">{{ u.role }}</span></td>
+            <td class="py-2.5 text-ink-light">{{ u.created_at|date:"d.m.Y H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="py-4 text-center text-ink-light">Henüz kullanıcı yok.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+// Count-up animation via GSAP
+document.querySelectorAll('.countup').forEach(el => {
+  const target = parseInt(el.dataset.target) || 0;
+  if (typeof gsap !== 'undefined') {
+    gsap.to(el, { duration: 1.5, textContent: target, roundProps: 'textContent', ease: 'power2.out' });
+  } else {
+    el.textContent = target;
+  }
+});
+
+// Fetch chart data
+fetch('{% url "controlpanel:charts_data" %}')
+  .then(r => r.json())
+  .then(data => {
+    const gold = '#C9A84C';
+    const goldLight = 'rgba(201, 168, 76, 0.15)';
+    const ink = '#111111';
+
+    // Signup trend
+    if (data.signup_trend.length) {
+      new Chart(document.getElementById('signupChart'), {
+        type: 'line',
+        data: {
+          labels: data.signup_trend.map(x => x.date),
+          datasets: [{
+            label: 'Yeni Kullanıcı',
+            data: data.signup_trend.map(x => x.count),
+            borderColor: gold, backgroundColor: goldLight,
+            fill: true, tension: 0.4, pointRadius: 3,
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+      });
+    }
+
+    // Listing trend
+    if (data.listing_trend.length) {
+      new Chart(document.getElementById('listingChart'), {
+        type: 'line',
+        data: {
+          labels: data.listing_trend.map(x => x.date),
+          datasets: [{
+            label: 'Yeni İlan',
+            data: data.listing_trend.map(x => x.count),
+            borderColor: ink, backgroundColor: 'rgba(17,17,17,0.08)',
+            fill: true, tension: 0.4, pointRadius: 3,
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+      });
+    }
+
+    // Top cities
+    if (data.top_cities.length) {
+      new Chart(document.getElementById('citiesChart'), {
+        type: 'bar',
+        data: {
+          labels: data.top_cities.map(x => x.city || 'Bilinmiyor'),
+          datasets: [{
+            label: 'İlan Sayısı',
+            data: data.top_cities.map(x => x.count),
+            backgroundColor: gold, borderRadius: 4,
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+      });
+    }
+
+    // Status distribution doughnut
+    if (data.status_distribution.length) {
+      const statusLabels = { 'active': 'Aktif', 'sold': 'Satıldı', 'rented': 'Kiralandı', 'passive': 'Pasif', 'pending': 'Beklemede' };
+      const statusColors = ['#C9A84C', '#111111', '#A8872E', '#E5DDD0', '#6B7280'];
+      new Chart(document.getElementById('statusChart'), {
+        type: 'doughnut',
+        data: {
+          labels: data.status_distribution.map(x => statusLabels[x.status] || x.status),
+          datasets: [{
+            data: data.status_distribution.map(x => x.count),
+            backgroundColor: statusColors.slice(0, data.status_distribution.length),
+            borderWidth: 2, borderColor: '#FFFFFF',
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } } } }
+      });
+    }
+  });
+</script>
+{% endblock %}

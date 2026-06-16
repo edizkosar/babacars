@@ -1,0 +1,277 @@
+/* ════════════════════════════════════════════════════════════════
+   BabaCars – effects.css
+   Dinamik mikro-etkileşim ve animasyon katmanı.
+   Mevcut stillere dokunmaz; sadece ek davranış getirir.
+   ════════════════════════════════════════════════════════════════ */
+
+/* ─── 1. Kart resim hover-zoom ─────────────────────────────────── */
+[data-animate="card"] { overflow: hidden; }
+[data-animate="card"] .car-img {
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+[data-animate="card"]:hover .car-img { transform: scale(1.08); }
+
+/* Resmin üstünde yumuşak karartma katmanı */
+[data-animate="card"] .card-media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.18), transparent 45%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+[data-animate="card"]:hover .card-media::after { opacity: 1; }
+
+/* ─── 2. 3D tilt ───────────────────────────────────────────────── */
+[data-tilt] {
+  transform-style: preserve-3d;
+  transition: transform 0.15s ease-out, box-shadow 0.3s ease;
+  will-change: transform;
+}
+[data-tilt].tilt-active { box-shadow: 0 22px 50px rgba(0,0,0,0.16); }
+
+/* ─── 3. Buton ripple ──────────────────────────────────────────── */
+.btn, [data-ripple] { position: relative; overflow: hidden; }
+.ripple-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.55);
+  transform: scale(0);
+  animation: rippleEffect 0.6s ease-out;
+  pointer-events: none;
+}
+@keyframes rippleEffect { to { transform: scale(4); opacity: 0; } }
+
+/* ─── 4. Favori kalp pop ───────────────────────────────────────── */
+@keyframes heartPop {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.45); }
+  60%  { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+.heart-pop { animation: heartPop 0.45s ease; }
+.fav-particle {
+  position: absolute;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #ef4444;
+  pointer-events: none;
+  z-index: 60;
+}
+
+/* ─── 5. Yukarı çık butonu ─────────────────────────────────────── */
+#back-to-top {
+  position: fixed;
+  bottom: 6rem; right: 1.5rem;
+  width: 44px; height: 44px;
+  background: #111111; color: #C9A84C;
+  border: none; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; z-index: 8000;
+  opacity: 0; visibility: hidden; transform: translateY(12px);
+  transition: opacity 0.3s, transform 0.3s, visibility 0.3s, background 0.2s;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+}
+#back-to-top.visible { opacity: 1; visibility: visible; transform: translateY(0); }
+#back-to-top:hover { background: #000; transform: translateY(-3px); }
+
+/* ─── 6. Scroll reveal ─────────────────────────────────────────── */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s cubic-bezier(0.22,1,0.36,1), transform 0.7s cubic-bezier(0.22,1,0.36,1);
+}
+[data-reveal].revealed { opacity: 1; transform: translateY(0); }
+
+/* ─── 7. Detay sayfası zoom-lens ───────────────────────────────── */
+.zoom-lens-wrap { position: relative; overflow: hidden; cursor: zoom-in; }
+.zoom-lens-wrap img { transition: transform 0.1s ease-out; }
+.zoom-lens-wrap.zooming img { transform: scale(2.2); }
+
+/* ─── 8. Hızlı bakış modal ─────────────────────────────────────── */
+#quickview-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  z-index: 9500;
+  display: none;
+  align-items: center; justify-content: center;
+  padding: 1rem;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+#quickview-overlay.open { display: flex; opacity: 1; }
+#quickview-card {
+  background: #fff;
+  border-radius: 16px;
+  max-width: 480px; width: 100%;
+  overflow: hidden;
+  transform: scale(0.92);
+  transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 24px 70px rgba(0,0,0,0.3);
+}
+#quickview-overlay.open #quickview-card { transform: scale(1); }
+.quickview-btn {
+  position: absolute; top: 0.75rem; right: 0.75rem;
+  width: 32px; height: 32px;
+  background: rgba(0,0,0,0.45); color: #fff;
+  border: none; border-radius: 50%;
+  cursor: pointer; font-size: 1.1rem; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 5;
+}
+.quickview-trigger {
+  position: absolute; bottom: 0.75rem; right: 0.75rem;
+  background: rgba(17,17,17,0.85); color: #fff;
+  border: none; border-radius: 8px;
+  padding: 0.4rem 0.75rem; font-size: 0.7rem; font-weight: 700;
+  cursor: pointer; opacity: 0; transform: translateY(8px);
+  transition: opacity 0.3s, transform 0.3s, background 0.2s;
+  z-index: 6; backdrop-filter: blur(4px);
+}
+[data-animate="card"]:hover .quickview-trigger { opacity: 1; transform: translateY(0); }
+.quickview-trigger:hover { background: #C9A84C; color: #111; }
+
+[data-theme="dark"] #quickview-card { background: #1A1F2E; }
+[data-theme="dark"] #back-to-top { background: #C9A84C; color: #111; }
+
+/* ════════════════════════════════════════════════════════════════
+   PREMIUM EK PAKET
+   ════════════════════════════════════════════════════════════════ */
+
+/* ─── 9. Scroll ilerleme çubuğu ────────────────────────────────── */
+#scroll-progress {
+  position: fixed; top: 0; left: 0; height: 3px; width: 0%;
+  background: linear-gradient(90deg, #C9A84C, #E8C97A, #C9A84C);
+  background-size: 200% 100%;
+  z-index: 9999;
+  transition: width 0.1s linear;
+  box-shadow: 0 0 10px rgba(201,168,76,0.6);
+  animation: progressShine 3s linear infinite;
+}
+@keyframes progressShine { to { background-position: 200% 0; } }
+
+/* ─── 10. Scroll'da küçülen header ─────────────────────────────── */
+header { transition: height 0.3s ease, box-shadow 0.3s ease, background 0.3s ease; }
+header.shrink {
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  backdrop-filter: blur(12px);
+  background: rgba(255,255,255,0.85) !important;
+}
+[data-theme="dark"] header.shrink { background: rgba(15,17,23,0.85) !important; }
+
+/* ─── 11. İmleç ışıltısı (cursor glow) ─────────────────────────── */
+#cursor-glow {
+  position: fixed; top: 0; left: 0;
+  width: 380px; height: 380px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(201,168,76,0.10), transparent 65%);
+  pointer-events: none; z-index: 7000;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.3s ease;
+  opacity: 0;
+  will-change: transform;
+}
+@media (hover: none) { #cursor-glow { display: none; } }
+
+/* ─── 12. Kart spotlight (imleç takipli ışık) ──────────────────── */
+[data-animate="card"] { position: relative; }
+[data-animate="card"]::before {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    320px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(201,168,76,0.14), transparent 60%
+  );
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+  z-index: 3;
+}
+[data-animate="card"]:hover::before { opacity: 1; }
+
+/* ─── 13. Magnetic butonlar ────────────────────────────────────── */
+[data-magnetic], .btn-gold { transition: transform 0.2s cubic-bezier(0.22,1,0.36,1); will-change: transform; }
+
+/* ─── 14. Gradient akışlı başlık ───────────────────────────────── */
+.gradient-flow {
+  background: linear-gradient(90deg, #C9A84C, #E8C97A, #ffffff, #C9A84C);
+  background-size: 300% auto;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  animation: gradientFlow 5s linear infinite;
+}
+@keyframes gradientFlow { to { background-position: 300% center; } }
+
+/* ─── 15. Hero parçacık canvas ─────────────────────────────────── */
+.hero-particles {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: none; z-index: 0;
+}
+.hero-dark { position: relative; }
+.hero-dark > *:not(.hero-particles) { position: relative; z-index: 1; }
+
+/* ─── 16. Parallax ─────────────────────────────────────────────── */
+[data-parallax] { will-change: transform; transition: transform 0.1s linear; }
+
+/* ─── 17. Konfeti parçası ──────────────────────────────────────── */
+.confetti-piece {
+  position: fixed; width: 9px; height: 9px;
+  z-index: 9998; pointer-events: none; top: 0;
+  will-change: transform, opacity;
+}
+
+/* ─── 18. Preloader ────────────────────────────────────────────── */
+#preloader {
+  position: fixed; inset: 0; z-index: 99999;
+  background: #111111;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 1.25rem;
+  transition: opacity 0.6s ease, visibility 0.6s ease;
+}
+#preloader.done { opacity: 0; visibility: hidden; }
+#preloader .pl-logo {
+  font-size: 2rem; font-weight: 900; letter-spacing: -0.04em;
+  color: #FAF7F2;
+  opacity: 0; animation: plFade 0.6s ease forwards;
+}
+#preloader .pl-logo span { color: #C9A84C; }
+#preloader .pl-bar {
+  width: 160px; height: 3px; background: rgba(255,255,255,0.12);
+  border-radius: 99px; overflow: hidden;
+}
+#preloader .pl-bar i {
+  display: block; height: 100%; width: 40%;
+  background: linear-gradient(90deg, transparent, #C9A84C, transparent);
+  animation: plSlide 1s ease-in-out infinite;
+}
+@keyframes plFade { to { opacity: 1; } }
+@keyframes plSlide { 0% { transform: translateX(-120%); } 100% { transform: translateX(320%); } }
+
+/* ─── 19. Glow puls (öne çıkan rozet/CTA) ─────────────────────── */
+.glow-pulse { animation: glowPulse 2.4s ease-in-out infinite; }
+@keyframes glowPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(201,168,76,0.5); }
+  50% { box-shadow: 0 0 0 8px rgba(201,168,76,0); }
+}
+
+/* ─── 20. Link altı çizgi süpürme (genel) ─────────────────────── */
+.link-sweep { position: relative; }
+.link-sweep::after {
+  content: ''; position: absolute; left: 0; bottom: -2px;
+  width: 100%; height: 2px; background: #C9A84C;
+  transform: scaleX(0); transform-origin: right;
+  transition: transform 0.3s ease;
+}
+.link-sweep:hover::after { transform: scaleX(1); transform-origin: left; }
+
+/* ─── Erişilebilirlik: hareket azaltma tercihi ─────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, [data-reveal], [data-tilt], .car-img { transition: none !important; animation: none !important; transform: none !important; }
+  [data-reveal] { opacity: 1; }
+  #cursor-glow, .hero-particles, #scroll-progress { display: none !important; }
+}

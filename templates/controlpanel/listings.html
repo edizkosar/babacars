@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}İlanlar - Yönetim{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  {% include 'controlpanel/_panel_nav.html' %}
+
+  <div class="card overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead><tr class="border-b border-warm-border text-left bg-beige">
+          <th class="px-4 py-3 text-xs font-semibold uppercase tracking-widest text-ink-light">Foto</th>
+          <th class="px-4 py-3 text-xs font-semibold uppercase tracking-widest text-ink-light">Başlık</th>
+          <th class="px-4 py-3 text-xs font-semibold uppercase tracking-widest text-ink-light">Satıcı</th>
+          <th class="px-4 py-3 text-xs font-semibold uppercase tracking-widest text-ink-light">Tip</th>
+          <th class="px-4 py-3 text-xs font-semibold uppercase tracking-widest text-ink-light">Fiyat</th>
+          <th class="px-4 py-3 text-xs font-semibold uppercase tracking-widest text-ink-light">Durum</th>
+          <th class="px-4 py-3 text-xs font-semibold uppercase tracking-widest text-ink-light">İşlemler</th>
+        </tr></thead>
+        <tbody>
+          {% for listing in listings %}
+          <tr class="border-b border-warm-border/50 hover:bg-beige/50 transition-colors" id="listing-row-{{ listing.id }}">
+            <td class="px-4 py-3">
+              {% if listing.photos.first %}
+                <img src="{{ listing.photos.first.image.url }}" class="w-14 h-10 object-cover" style="border-radius:4px" />
+              {% else %}
+                <div class="w-14 h-10 bg-beige-dark flex items-center justify-center" style="border-radius:4px">
+                  <svg class="w-5 h-5 text-ink/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14" /></svg>
+                </div>
+              {% endif %}
+            </td>
+            <td class="px-4 py-3 font-medium text-ink">
+              <a href="{% url 'listings:detail' listing.slug %}" class="hover:text-gold">{{ listing.title }}</a>
+            </td>
+            <td class="px-4 py-3 text-ink-light">{{ listing.seller.email }}</td>
+            <td class="px-4 py-3">
+              <span class="badge text-xs {% if listing.listing_type == 'rental' %}bg-violet-100 text-violet-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+                {{ listing.get_listing_type_display }}
+              </span>
+            </td>
+            <td class="px-4 py-3 font-bold text-gold">{{ listing.price|floatformat:0 }} TL</td>
+            <td class="px-4 py-3">
+              <select onchange="setStatus({{ listing.id }}, this.value)" class="form-select text-xs py-1 px-2" id="status-select-{{ listing.id }}">
+                <option value="active" {% if listing.status == 'active' %}selected{% endif %}>Aktif</option>
+                <option value="passive" {% if listing.status == 'passive' %}selected{% endif %}>Pasif</option>
+                <option value="pending" {% if listing.status == 'pending' %}selected{% endif %}>Beklemede</option>
+                <option value="sold" {% if listing.status == 'sold' %}selected{% endif %}>Satıldı</option>
+                <option value="rented" {% if listing.status == 'rented' %}selected{% endif %}>Kiralandı</option>
+              </select>
+            </td>
+            <td class="px-4 py-3">
+              <button onclick="deleteListing({{ listing.id }})" class="btn btn-danger btn-sm">Sil</button>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="px-4 py-8 text-center text-ink-light">İlan bulunamadı.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+async function setStatus(listingId, status) {
+  const res = await fetch(`/control-panel/listings/${listingId}/status/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() },
+    body: JSON.stringify({ status })
+  });
+  if (res.ok) showToast('Durum güncellendi.', 'success');
+  else { const d = await res.json(); showToast(d.error || 'Hata.', 'error'); }
+}
+
+async function deleteListing(listingId) {
+  if (!confirm('Bu ilanı silmek istediğinize emin misiniz?')) return;
+  const res = await fetch(`/control-panel/listings/${listingId}/delete/`, {
+    method: 'POST', headers: { 'X-CSRFToken': getCSRF() }
+  });
+  if (res.ok) {
+    document.getElementById(`listing-row-${listingId}`)?.remove();
+    showToast('İlan silindi.', 'success');
+  }
+}
+</script>
+{% endblock %}

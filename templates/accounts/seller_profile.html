@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}{{ seller_profile.user.email }} – Satıcı Profili{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Seller Card -->
+    <div>
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 sticky top-20">
+        {% if seller_profile.user.avatar %}
+          <img src="{{ seller_profile.user.avatar.url }}" class="w-20 h-20 rounded-full object-cover mx-auto mb-3 ring-2 ring-primary-100" alt="{{ seller_profile.user.email }}" />
+        {% else %}
+          <div class="w-20 h-20 rounded-full bg-gradient-to-br from-primary-500 to-violet-600 text-white flex items-center justify-center text-2xl font-black mx-auto mb-3">{{ seller_profile.user.email|first|upper }}</div>
+        {% endif %}
+        <p class="font-bold text-slate-900 text-center">{{ seller_profile.user.email }}</p>
+        {% if seller_profile.is_verified %}<p class="text-center text-emerald-600 text-sm font-medium mt-1">✓ Onaylı Satıcı</p>{% endif %}
+        <div class="mt-4 flex justify-around text-center">
+          <div><p class="font-black text-xl text-primary-600">{{ seller_profile.total_sales }}</p><p class="text-xs text-slate-400">Satış</p></div>
+          <div><p class="font-black text-xl text-primary-600">{{ seller_profile.rating|floatformat:1 }}</p><p class="text-xs text-slate-400">Puan</p></div>
+          <div><p class="font-black text-xl text-primary-600">{{ reviews|length }}</p><p class="text-xs text-slate-400">Yorum</p></div>
+        </div>
+        {% if seller_profile.bio %}<p class="text-sm text-slate-500 mt-4 text-center leading-relaxed">{{ seller_profile.bio }}</p>{% endif %}
+      </div>
+    </div>
+
+    <!-- Listings + Reviews -->
+    <div class="lg:col-span-2 space-y-8">
+      <!-- Active Listings -->
+      <div>
+        <h2 class="font-bold text-slate-800 text-lg mb-4">Aktif İlanlar</h2>
+        {% if listings %}
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {% for listing in listings %}{% include 'listings/_listing_card.html' with listing=listing %}{% endfor %}
+          </div>
+        {% else %}
+          <p class="text-slate-400 text-sm">Aktif ilan yok.</p>
+        {% endif %}
+      </div>
+
+      <!-- Reviews -->
+      <div>
+        <h2 class="font-bold text-slate-800 text-lg mb-4">Değerlendirmeler</h2>
+        {% if user.is_authenticated and user != seller_profile.user %}
+          <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-4">
+            <h3 class="font-semibold text-slate-800 mb-3">Değerlendirme Yaz</h3>
+            <form method="POST" action="{% url 'accounts:create_review' seller_profile.id %}">
+              {% csrf_token %}
+              <div class="flex items-center gap-2 mb-3">
+                {% for i in "12345" %}
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rating" value="{{ forloop.counter }}" class="sr-only" />
+                    <span class="text-2xl hover:scale-110 transition-transform block text-amber-400" onclick="this.parentElement.querySelector('input').checked=true">&#9733;</span>
+                  </label>
+                {% endfor %}
+              </div>
+              <textarea name="comment" class="form-input mb-3" rows="2" placeholder="Yorumunuz..."></textarea>
+              <button type="submit" class="btn-primary bg-primary-600 text-white font-semibold px-5 py-2 rounded-xl text-sm">Gönder</button>
+            </form>
+          </div>
+        {% endif %}
+        {% if reviews %}
+          <div class="space-y-3">
+            {% for review in reviews %}
+              <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+                <div class="flex items-start justify-between mb-2">
+                  <div>
+                    <p class="font-semibold text-slate-800 text-sm">{{ review.reviewer.email }}</p>
+                    <p class="text-xs text-slate-400">{{ review.created_at|date:"d M Y" }}</p>
+                  </div>
+                  <span class="text-sm font-bold text-amber-500">{{ review.rating }}/5 <span class="text-amber-400">&#9733;</span></span>
+                </div>
+                {% if review.comment %}<p class="text-sm text-slate-600">{{ review.comment }}</p>{% endif %}
+                {% if user == review.reviewer %}
+                  <form method="POST" action="{% url 'accounts:delete_review' review.id %}" class="mt-2">
+                    {% csrf_token %}
+                    <button type="submit" class="text-xs text-red-500 hover:underline">Sil</button>
+                  </form>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-slate-400 text-sm">Henüz değerlendirme yok.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

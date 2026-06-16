@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}Araç Karşılaştır{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <h1 class="text-2xl font-bold text-slate-900 mb-6">Araç Karşılaştır</h1>
+  {% if listings %}
+    <div class="overflow-x-auto">
+      <table class="w-full bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden text-sm">
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-100">
+            <th class="text-left px-5 py-4 font-semibold text-slate-500 w-36">Özellik</th>
+            {% for listing in listings %}
+              <th class="px-5 py-4 text-center min-w-[200px]">
+                {% with cover=listing.photos.first %}
+                  {% if cover %}<img src="{{ cover.image.url }}" class="h-24 w-full object-cover rounded-xl mb-2" alt="{{ listing.title }}" />{% endif %}
+                {% endwith %}
+                <a href="{% url 'listings:detail' listing.slug %}" class="font-bold text-slate-900 hover:text-primary-600 block leading-snug">{{ listing.title }}</a>
+                <p class="text-primary-600 font-black text-lg mt-1">{{ listing.price|floatformat:0 }} TL</p>
+              </th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr class="hover:bg-slate-50/50">
+            <td class="px-5 py-3 font-medium text-slate-500">İlan Türü</td>
+            {% for listing in listings %}<td class="px-5 py-3 text-center font-semibold text-slate-800">{{ listing.get_listing_type_display }}</td>{% endfor %}
+          </tr>
+          <tr class="hover:bg-slate-50/50">
+            <td class="px-5 py-3 font-medium text-slate-500">Şehir</td>
+            {% for listing in listings %}<td class="px-5 py-3 text-center font-semibold text-slate-800">{{ listing.city }}</td>{% endfor %}
+          </tr>
+          <tr class="hover:bg-slate-50/50">
+            <td class="px-5 py-3 font-medium text-slate-500">Marka</td>
+            {% for listing in listings %}<td class="px-5 py-3 text-center font-semibold text-slate-800">{{ listing.vehicle.make|default:'-' }}</td>{% endfor %}
+          </tr>
+          <tr class="hover:bg-slate-50/50">
+            <td class="px-5 py-3 font-medium text-slate-500">Model</td>
+            {% for listing in listings %}<td class="px-5 py-3 text-center font-semibold text-slate-800">{{ listing.vehicle.model|default:'-' }}</td>{% endfor %}
+          </tr>
+          <tr class="hover:bg-slate-50/50">
+            <td class="px-5 py-3 font-medium text-slate-500">Yıl</td>
+            {% for listing in listings %}<td class="px-5 py-3 text-center font-semibold text-slate-800">{{ listing.vehicle.year|default:'-' }}</td>{% endfor %}
+          </tr>
+          <tr class="hover:bg-slate-50/50">
+            <td class="px-5 py-3 font-medium text-slate-500">Kilometre</td>
+            {% for listing in listings %}<td class="px-5 py-3 text-center font-semibold text-slate-800">{% if listing.vehicle.mileage %}{{ listing.vehicle.mileage|floatformat:0 }} km{% else %}-{% endif %}</td>{% endfor %}
+          </tr>
+          <tr class="hover:bg-slate-50/50">
+            <td class="px-5 py-3 font-medium text-slate-500">Yakıt</td>
+            {% for listing in listings %}<td class="px-5 py-3 text-center font-semibold text-slate-800">{{ listing.vehicle.get_fuel_type_display|default:'-' }}</td>{% endfor %}
+          </tr>
+          <tr class="hover:bg-slate-50/50">
+            <td class="px-5 py-3 font-medium text-slate-500">Vites</td>
+            {% for listing in listings %}<td class="px-5 py-3 text-center font-semibold text-slate-800">{{ listing.vehicle.get_transmission_display|default:'-' }}</td>{% endfor %}
+          </tr>
+          <tr class="hover:bg-slate-50/50">
+            <td class="px-5 py-3 font-medium text-slate-500">Kasa</td>
+            {% for listing in listings %}<td class="px-5 py-3 text-center font-semibold text-slate-800">{{ listing.vehicle.get_body_type_display|default:'-' }}</td>{% endfor %}
+          </tr>
+          <tr class="hover:bg-slate-50/50">
+            <td class="px-5 py-3 font-medium text-slate-500">Güç</td>
+            {% for listing in listings %}<td class="px-5 py-3 text-center font-semibold text-slate-800">{% if listing.vehicle.horsepower %}{{ listing.vehicle.horsepower }} HP{% else %}-{% endif %}</td>{% endfor %}
+          </tr>
+          <tr class="hover:bg-slate-50/50">
+            <td class="px-5 py-3 font-medium text-slate-500">Yakıt Tüketimi</td>
+            {% for listing in listings %}<td class="px-5 py-3 text-center font-semibold text-slate-800">{% if listing.vehicle.fuel_consumption %}{{ listing.vehicle.fuel_consumption }} L/100km{% else %}-{% endif %}</td>{% endfor %}
+          </tr>
+          <tr class="bg-slate-50">
+            <td class="px-5 py-3 font-medium text-slate-500">Fiyat</td>
+            {% for listing in listings %}<td class="px-5 py-3 text-center font-black text-primary-600 text-lg">{{ listing.price|floatformat:0 }} TL</td>{% endfor %}
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="mt-6 text-center">
+      <form method="POST" action="{% url 'listings:compare' %}">
+        {% csrf_token %}
+        <input type="hidden" name="clear" value="1" />
+        <button type="submit" class="px-5 py-2.5 border border-red-200 text-red-600 font-semibold rounded-xl text-sm hover:bg-red-50 transition-colors">
+          Listeyi Temizle
+        </button>
+      </form>
+    </div>
+  {% else %}
+    <div class="text-center py-20 bg-white rounded-2xl border border-slate-100 shadow-sm">
+      
+      <h3 class="text-xl font-semibold text-slate-700 mb-2">Karşılaştırma listesi boş</h3>
+      <p class="text-slate-500 text-sm mb-6">İlan detay sayfasından araçları karşılaştırmaya ekleyin.</p>
+      <a href="{% url 'listings:index' %}" class="btn-primary bg-primary-600 text-white px-6 py-3 rounded-xl font-semibold inline-block">İlanlara Git</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

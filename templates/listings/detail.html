@@ -1,0 +1,452 @@
+{% extends 'base.html' %}
+{% block title %}{{ listing.title }}{% endblock %}
+{% block meta_description %}{{ listing.description|truncatewords:20 }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Breadcrumb -->
+  <nav class="text-sm text-slate-400 mb-6 flex items-center gap-2">
+    <a href="{% url 'listings:index' %}" class="hover:text-primary-600">İlanlar</a>
+    <span>/</span>
+    <span class="text-slate-700 font-medium truncate">{{ listing.title }}</span>
+  </nav>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- ─── LEFT: Photos + Details ─── -->
+    <div class="lg:col-span-2 space-y-6">
+      <!-- Photo Gallery -->
+      <div class="card overflow-hidden">
+        {% with photos=photos %}
+          {% if photos %}
+            <div class="relative">
+              <img id="main-photo" src="{{ photos.0.image.url }}" alt="{{ listing.title }}"
+                class="w-full aspect-video object-cover cursor-pointer" data-gallery-open="0" />
+            </div>
+            {% if photos|length > 1 %}
+              <div class="p-3 flex gap-2 overflow-x-auto">
+                {% for photo in photos %}
+                  <img src="{{ photo.image.url }}" alt="Foto {{ forloop.counter }}"
+                    data-gallery-open="{{ forloop.counter0 }}"
+                    onclick="document.getElementById('main-photo').src=this.src"
+                    class="h-16 w-24 object-cover cursor-pointer border-2 border-transparent hover:border-gold transition-colors shrink-0" style="border-radius:4px" />
+                {% endfor %}
+              </div>
+            {% endif %}
+          {% else %}
+            <div class="aspect-video bg-beige-dark flex items-center justify-center">
+              <svg class="w-16 h-16 text-ink/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            </div>
+          {% endif %}
+        {% endwith %}
+      </div>
+
+      <!-- Hidden photo URL list for gallery JS -->
+      {% for photo in photos %}
+        <span data-gallery-photo data-src="{{ photo.image.url }}" class="hidden"></span>
+      {% endfor %}
+
+      <!-- Fullscreen Gallery Overlay -->
+      <div id="galleryOverlay" class="fixed inset-0 z-[100] bg-black/95 hidden items-center justify-center" style="cursor:pointer;">
+        <button id="galleryClose" class="absolute top-4 right-4 text-white hover:text-gold bg-black/50 rounded-full w-12 h-12 flex items-center justify-center text-3xl font-light" style="z-index:110; cursor:pointer;" onclick="event.stopPropagation()">&times;</button>
+        <button id="galleryPrev" class="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 text-white hover:text-gold bg-black/40 rounded-full w-12 h-12 flex items-center justify-center text-4xl font-light select-none" style="z-index:110; cursor:pointer;" onclick="event.stopPropagation()">&#8249;</button>
+        <button id="galleryNext" class="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 text-white hover:text-gold bg-black/40 rounded-full w-12 h-12 flex items-center justify-center text-4xl font-light select-none" style="z-index:110; cursor:pointer;" onclick="event.stopPropagation()">&#8250;</button>
+        <img id="galleryImg" src="" class="max-h-[85vh] max-w-[90vw] object-contain transition-transform duration-200" style="cursor:zoom-in; z-index:105; position:relative;" onclick="event.stopPropagation()">
+        <div id="galleryCounter" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-white text-sm font-medium tracking-wide" style="z-index:110;"></div>
+      </div>
+
+      <!-- Vehicle Info -->
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <div class="flex items-start justify-between mb-4">
+          <div>
+            <div class="flex gap-2 mb-2 flex-wrap">
+              {% if listing.listing_type == 'rental' %}
+                <span class="badge bg-violet-100 text-violet-700">KİRALIK</span>
+              {% else %}
+                <span class="badge bg-blue-100 text-blue-700">SATILIK</span>
+              {% endif %}
+              <span class="badge badge-{{ listing.status }}">{{ listing.get_status_display }}</span>
+            </div>
+            <h1 class="text-2xl font-black text-slate-900 leading-tight">{{ listing.title }}</h1>
+            <p class="text-slate-500 text-sm mt-1 flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              {{ listing.city }}{% if listing.district %}, {{ listing.district }}{% endif %}
+            </p>
+          </div>
+          <div class="text-right shrink-0">
+            <p class="text-3xl font-black text-primary-600">{{ listing.price|floatformat:0 }} TL</p>
+            {% if listing.listing_type == 'rental' %}<p class="text-xs text-slate-400">/ gün</p>{% endif %}
+          </div>
+        </div>
+        <p class="text-slate-600 leading-relaxed">{{ listing.description }}</p>
+      </div>
+
+      <!-- Vehicle Specs -->
+      {% if listing.vehicle %}
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <div class="flex items-center justify-between mb-5">
+          <h2 class="font-bold text-slate-800 text-lg">Araç Özellikleri</h2>
+          <a href="{% url 'listings:pdf' listing.slug %}"
+             class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 border border-slate-200 rounded-lg px-3 py-2 hover:bg-slate-50 hover:border-gold transition-colors">
+            <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-6 4h6"/></svg>
+            PDF Föy İndir
+          </a>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          {% with v=listing.vehicle %}
+          <div class="bg-slate-50 rounded-xl p-3">
+            <p class="text-xs text-slate-400 mb-1">Marka / Model</p>
+            <p class="font-semibold text-slate-800">{{ v.make }} {{ v.model }}</p>
+          </div>
+          <div class="bg-slate-50 rounded-xl p-3">
+            <p class="text-xs text-slate-400 mb-1">Yıl</p>
+            <p class="font-semibold text-slate-800">{{ v.year }}</p>
+          </div>
+          <div class="bg-slate-50 rounded-xl p-3">
+            <p class="text-xs text-slate-400 mb-1">Kilometre</p>
+            <p class="font-semibold text-slate-800">{{ v.mileage|floatformat:0 }} km</p>
+          </div>
+          <div class="bg-slate-50 rounded-xl p-3">
+            <p class="text-xs text-slate-400 mb-1">Yakıt</p>
+            <p class="font-semibold text-slate-800">{{ v.get_fuel_type_display }}</p>
+          </div>
+          <div class="bg-slate-50 rounded-xl p-3">
+            <p class="text-xs text-slate-400 mb-1">Vites</p>
+            <p class="font-semibold text-slate-800">{{ v.get_transmission_display }}</p>
+          </div>
+          <div class="bg-slate-50 rounded-xl p-3">
+            <p class="text-xs text-slate-400 mb-1">Kasa</p>
+            <p class="font-semibold text-slate-800">{{ v.get_body_type_display }}</p>
+          </div>
+          <div class="bg-slate-50 rounded-xl p-3">
+            <p class="text-xs text-slate-400 mb-1">Renk</p>
+            <p class="font-semibold text-slate-800">{{ v.color }}</p>
+          </div>
+          {% if v.horsepower %}<div class="bg-slate-50 rounded-xl p-3"><p class="text-xs text-slate-400 mb-1">Güç</p><p class="font-semibold text-slate-800">{{ v.horsepower }} HP</p></div>{% endif %}
+          {% if v.fuel_consumption %}<div class="bg-slate-50 rounded-xl p-3"><p class="text-xs text-slate-400 mb-1">Yakıt Tüketimi</p><p class="font-semibold text-slate-800">{{ v.fuel_consumption }} L/100km</p></div>{% endif %}
+          {% endwith %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- ─── RIGHT: Sticky Action Sidebar ─── -->
+    <div class="space-y-4">
+      <div class="sticky top-20 space-y-4">
+        <!-- Seller Card -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+          <h3 class="font-bold text-slate-800 mb-3">Satıcı</h3>
+          {% if listing.seller.seller_profile.id %}
+          <a href="{% url 'accounts:seller_profile' listing.seller.seller_profile.id %}" class="flex items-center gap-3 hover:bg-slate-50 rounded-xl p-2 -mx-2 transition-colors">
+          {% else %}
+          <div class="flex items-center gap-3 p-2 -mx-2">
+          {% endif %}
+            {% if listing.seller.avatar %}
+              <img src="{{ listing.seller.avatar.url }}" class="w-10 h-10 rounded-full object-cover" alt="{{ listing.seller.email }}" />
+            {% else %}
+              <span class="w-10 h-10 rounded-full bg-primary-600 text-white flex items-center justify-center font-bold">{{ listing.seller.email|first|upper }}</span>
+            {% endif %}
+            <div>
+              <p class="font-semibold text-slate-800 text-sm">{{ listing.seller.email }}</p>
+              {% if listing.seller.seller_profile.is_verified %}
+                <p class="text-xs text-emerald-600 font-medium">✓ Doğrulanmış Satıcı</p>
+              {% endif %}
+            </div>
+          {% if listing.seller.seller_profile.id %}</a>{% else %}</div>{% endif %}
+          <div class="flex gap-2 mt-3 text-xs text-ink-light">
+            <span>{{ listing.view_count }} görüntülenme</span>
+            <span>{{ listing.favorite_count }} favori</span>
+          </div>
+
+          <!-- Share Buttons -->
+          <div class="flex items-center gap-2 mt-4">
+            <span class="form-label mb-0">Paylaş</span>
+            <a id="shareWhatsapp" href="#" target="_blank" rel="noopener"
+               class="btn btn-outline btn-sm" title="WhatsApp'ta paylaş">
+              WhatsApp
+            </a>
+            <button id="shareCopy" class="btn btn-outline btn-sm" title="Linki kopyala">
+              Linki Kopyala
+            </button>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        {% if user.is_authenticated and user != listing.seller %}
+          <!-- Favorite -->
+          <button data-favorite-btn data-listing-id="{{ listing.id }}" id="fav-btn"
+            class="w-full flex items-center justify-center gap-2 border border-slate-200 rounded-xl py-2.5 text-sm font-semibold text-slate-600 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-colors">
+            <svg data-fav-icon class="w-5 h-5 {% if is_favorited %}fill-red-500 text-red-500{% else %}text-slate-400{% endif %}" fill="{% if is_favorited %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+            </svg>
+            <span>{% if is_favorited %}Favorilerden Çıkar{% else %}Favorilere Ekle{% endif %}</span>
+          </button>
+
+          <!-- Message -->
+          <form method="POST" action="{% url 'messaging:start' listing.id %}">
+            {% csrf_token %}
+            <button type="submit" class="w-full flex items-center justify-center gap-2 border border-slate-200 rounded-xl py-2.5 text-sm font-semibold text-slate-600 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+              Mesaj Gönder
+            </button>
+          </form>
+
+          <!-- Offer Button -->
+          {% if listing.status == 'active' %}
+            <button onclick="document.getElementById('offer-modal').classList.remove('hidden')"
+              class="btn-primary w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Teklif Ver
+            </button>
+          {% endif %}
+
+        {% elif user == listing.seller %}
+          <div class="flex gap-2">
+            <a href="{% url 'listings:edit' listing.slug %}" class="flex-1 btn-primary bg-slate-700 hover:bg-slate-800 text-white font-semibold py-2.5 rounded-xl text-center text-sm">Düzenle</a>
+            <form method="POST" action="{% url 'listings:delete' listing.id %}" onsubmit="return confirm('Bu ilanı silmek istediğinize emin misiniz?')">
+              {% csrf_token %}
+              <button type="submit" class="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl text-sm transition-colors">Sil</button>
+            </form>
+          </div>
+          <a href="{% url 'offers:listing_offers' listing.id %}" class="w-full btn-primary bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2.5 rounded-xl text-center text-sm block">Teklifleri Gör</a>
+        {% else %}
+          <a href="{% url 'accounts:login' %}" class="w-full btn-primary bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 rounded-xl text-center block">Teklif vermek için giriş yap</a>
+        {% endif %}
+
+        <!-- Compare button -->
+        <button onclick="addToCompare({{ listing.id }})" id="compare-btn-{{ listing.id }}"
+          class="w-full btn btn-outline btn-sm">
+          Karşılaştırmaya Ekle
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── OFFER MODAL ─── -->
+{% if user.is_authenticated and user != listing.seller %}
+<div id="offer-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 animate-slide-up">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-black text-xl text-slate-900">Teklif Ver</h3>
+      <button onclick="document.getElementById('offer-modal').classList.add('hidden')" class="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+        <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <form id="offer-form" class="space-y-4">
+      {% csrf_token %}
+      <div>
+        <label class="text-sm font-semibold text-slate-700 mb-1.5 block">Teklif Tutarı (TL)</label>
+        <input type="number" name="amount" id="offer-amount" class="form-input" placeholder="Teklifinizi girin..." required min="1" />
+      </div>
+      {% if listing.listing_type == 'rental' %}
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-sm font-semibold text-slate-700 mb-1.5 block">Başlangıç Tarihi</label>
+            <input type="date" name="rental_start_date" id="rental-start" class="form-input" required />
+          </div>
+          <div>
+            <label class="text-sm font-semibold text-slate-700 mb-1.5 block">Bitiş Tarihi</label>
+            <input type="date" name="rental_end_date" id="rental-end" class="form-input" required />
+          </div>
+        </div>
+      {% endif %}
+      <div>
+        <label class="text-sm font-semibold text-slate-700 mb-1.5 block">Mesajınız <span class="text-slate-400 font-normal">(isteğe bağlı)</span></label>
+        <textarea name="message" id="offer-message" class="form-input" rows="2" placeholder="Satıcıya mesajınız..."></textarea>
+      </div>
+      <button type="submit" class="btn-primary w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 rounded-xl" id="offer-submit-btn">
+        Teklifi Gönder
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+document.getElementById('offer-form')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('offer-submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Gönderiliyor...';
+  const data = {
+    amount: document.getElementById('offer-amount')?.value,
+    message: document.getElementById('offer-message')?.value,
+    rental_start_date: document.getElementById('rental-start')?.value || null,
+    rental_end_date: document.getElementById('rental-end')?.value || null,
+  };
+  try {
+    const res = await fetch('{% url "offers:create" listing.id %}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() },
+      body: JSON.stringify(data),
+    });
+    const json = await res.json();
+    if (res.ok) {
+      document.getElementById('offer-modal').classList.add('hidden');
+      showToast(json.message, 'success');
+    } else {
+      showToast(json.error || 'Bir hata oluştu.', 'error');
+      btn.disabled = false;
+      btn.textContent = 'Teklifi Gönder';
+    }
+  } catch(err) {
+    showToast('Bağlantı hatası.', 'error');
+    btn.disabled = false;
+    btn.textContent = 'Teklifi Gönder';
+  }
+});
+
+async function addToCompare(listingId) {
+  try {
+    const res = await fetch('{% url "listings:compare" %}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': getCSRF() },
+      body: `listing_id=${listingId}`,
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showToast(`Karşılaştırmaya eklendi (${data.compare_count}/3)`, 'success');
+    } else {
+      showToast(data.error || 'Hata oluştu.', 'error');
+    }
+  } catch(err) {
+    showToast('Bağlantı hatası.', 'error');
+  }
+}
+</script>
+{% endif %}
+
+{% block extra_scripts %}
+<script>
+async function addToCompare(listingId) {
+  try {
+    const res = await fetch('{% url "listings:compare" %}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': getCSRF() },
+      body: `listing_id=${listingId}`,
+    });
+    const data = await res.json();
+    if (res.ok) showToast(`Karşılaştırmaya eklendi (${data.compare_count}/3)`, 'success');
+    else showToast(data.error || 'Hata oluştu.', 'error');
+  } catch(err) { showToast('Bağlantı hatası.', 'error'); }
+}
+
+// ── Photo Gallery ──
+(function() {
+  const photos = Array.from(document.querySelectorAll('[data-gallery-photo]')).map(el => el.dataset.src);
+  if (!photos.length) return;
+  let current = 0, zoomed = false;
+  const overlay = document.getElementById('galleryOverlay');
+  const img = document.getElementById('galleryImg');
+  const counter = document.getElementById('galleryCounter');
+  const closeBtn = document.getElementById('galleryClose');
+  const prevBtn = document.getElementById('galleryPrev');
+  const nextBtn = document.getElementById('galleryNext');
+  if (!overlay || !img) return;
+
+  function show(i) {
+    current = (i + photos.length) % photos.length;
+    img.src = photos[current];
+    counter.textContent = (current + 1) + ' / ' + photos.length;
+    img.style.transform = 'scale(1)';
+    img.style.cursor = 'zoom-in';
+    zoomed = false;
+  }
+  function openGallery(i) {
+    show(i);
+    overlay.classList.remove('hidden');
+    overlay.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeGallery() {
+    overlay.classList.add('hidden');
+    overlay.classList.remove('flex');
+    document.body.style.overflow = '';
+    zoomed = false;
+  }
+
+  // Open on photo click
+  document.querySelectorAll('[data-gallery-open]').forEach(function(el) {
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', function() {
+      openGallery(parseInt(el.dataset.galleryOpen) || 0);
+    });
+  });
+
+  // Close button
+  if (closeBtn) {
+    closeBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      closeGallery();
+    });
+  }
+
+  // Prev / Next
+  if (prevBtn) {
+    prevBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      show(current - 1);
+    });
+  }
+  if (nextBtn) {
+    nextBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      show(current + 1);
+    });
+  }
+
+  // Zoom toggle on image click
+  img.addEventListener('click', function(e) {
+    e.stopPropagation();
+    zoomed = !zoomed;
+    img.style.transform = zoomed ? 'scale(2)' : 'scale(1)';
+    img.style.cursor = zoomed ? 'zoom-out' : 'zoom-in';
+  });
+
+  // Close on background click
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) {
+      closeGallery();
+    }
+  });
+
+  // Keyboard controls
+  document.addEventListener('keydown', function(e) {
+    if (overlay.classList.contains('hidden')) return;
+    if (e.key === 'Escape') { closeGallery(); e.preventDefault(); }
+    if (e.key === 'ArrowLeft') { show(current - 1); e.preventDefault(); }
+    if (e.key === 'ArrowRight') { show(current + 1); e.preventDefault(); }
+  });
+
+  // Touch swipe
+  let startX = 0;
+  overlay.addEventListener('touchstart', function(e) { startX = e.touches[0].clientX; });
+  overlay.addEventListener('touchend', function(e) {
+    var diff = e.changedTouches[0].clientX - startX;
+    if (Math.abs(diff) > 50) show(diff > 0 ? current - 1 : current + 1);
+  });
+})();
+
+// ── Listing Share ──
+(function() {
+  const url = window.location.href;
+  const title = document.title;
+  const wa = document.getElementById('shareWhatsapp');
+  if (wa) {
+    wa.href = `https://wa.me/?text=${encodeURIComponent(title + ' - ' + url)}`;
+  }
+  const copyBtn = document.getElementById('shareCopy');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(url);
+        if (window.showToast) showToast('Link kopyalandı.', 'success');
+        else copyBtn.textContent = 'Kopyalandı!';
+      } catch {
+        if (window.showToast) showToast('Kopyalanamadı.', 'error');
+      }
+    });
+  }
+})();
+</script>
+{% endblock %}
+{% endblock %}

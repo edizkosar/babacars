@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% block title %}Harita{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+<style>
+  #map { height: calc(100vh - 64px); width: 100%; z-index: 1; }
+  .map-popup { width: 220px; font-family: 'Inter', sans-serif; }
+  .map-popup img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px 8px 0 0; display: block; }
+  .map-popup .mp-body { padding: 10px 12px; }
+  .map-popup .mp-badge { display:inline-block; font-size:.6rem; font-weight:800; padding:.15rem .5rem; border-radius:999px; color:#fff; margin-bottom:6px; }
+  .map-popup .mp-badge.sale { background:#2563eb; }
+  .map-popup .mp-badge.rental { background:#7c3aed; }
+  .map-popup .mp-title { font-size:.85rem; font-weight:800; color:#111; line-height:1.3; margin:0 0 4px; }
+  .map-popup .mp-meta { font-size:.7rem; color:#6b7280; margin:0 0 8px; }
+  .map-popup .mp-price { font-size:1rem; font-weight:900; color:#C9A84C; margin:0 0 8px; }
+  .map-popup a.mp-link { display:block; text-align:center; background:#111; color:#FAF7F2; font-size:.72rem; font-weight:700; padding:.45rem; border-radius:6px; text-decoration:none; }
+  .leaflet-popup-content { margin: 0 !important; }
+  .leaflet-popup-content-wrapper { border-radius: 12px; overflow: hidden; padding: 0; }
+  .map-toolbar {
+    position:absolute; top:80px; left:50%; transform:translateX(-50%);
+    z-index:500; background:#fff; border:1px solid #E5DDD0; border-radius:999px;
+    padding:.4rem .6rem; display:flex; gap:.4rem; align-items:center;
+    box-shadow:0 6px 24px rgba(0,0,0,0.12);
+  }
+  .map-toolbar select, .map-toolbar input {
+    border:none; outline:none; font-size:.8rem; background:transparent; color:#111;
+    padding:.35rem .5rem; border-radius:999px;
+  }
+  .map-toolbar .mt-divider { width:1px; height:20px; background:#E5DDD0; }
+  .map-toolbar button {
+    background:#C9A84C; color:#111; border:none; border-radius:999px;
+    font-size:.75rem; font-weight:800; padding:.4rem .9rem; cursor:pointer;
+  }
+  .map-count {
+    position:absolute; bottom:24px; left:24px; z-index:500;
+    background:#111; color:#FAF7F2; font-size:.75rem; font-weight:700;
+    padding:.5rem .9rem; border-radius:999px; box-shadow:0 6px 24px rgba(0,0,0,0.2);
+  }
+  [data-theme="dark"] .map-toolbar { background:#1A1F2E; border-color:rgba(255,255,255,0.1); }
+  [data-theme="dark"] .map-toolbar select, [data-theme="dark"] .map-toolbar input { color:#F1F5F9; }
+  [data-theme="dark"] .map-popup .mp-title { color:#111; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="relative">
+  <div class="map-toolbar">
+    <select id="f-type">
+      <option value="">Tüm İlanlar</option>
+      <option value="sale">Satılık</option>
+      <option value="rental">Kiralık</option>
+    </select>
+    <span class="mt-divider"></span>
+    <input id="f-make" type="text" placeholder="Marka (BMW...)" style="width:120px" />
+    <span class="mt-divider"></span>
+    <input id="f-city" type="text" placeholder="Şehir" style="width:90px" />
+    <button id="f-apply">Filtrele</button>
+  </div>
+  <div id="map"></div>
+  <div class="map-count" id="map-count">Yükleniyor…</div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+(function () {
+  const map = L.map('map', { zoomControl: true }).setView([39.0, 35.0], 6);
+
+  // Tema duyarlı harita katmanı
+  function tileUrl() {
+    const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    return dark
+      ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+      : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+  }
+  let tiles = L.tileLayer(tileUrl(), {
+    attribution: '&copy; OpenStreetMap, &copy; CARTO', maxZoom: 19,
+  }).addTo(map);
+
+  const cluster = L.markerClusterGroup({ maxClusterRadius: 50 });
+  map.addLayer(cluster);
+
+  // Altın renkli özel pin
+  const goldIcon = L.divIcon({
+    className: '',
+    html: '<div style="background:#C9A84C;width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+    iconSize: [26, 26], iconAnchor: [13, 26], popupAnchor: [0, -26],
+  });
+
+  function popupHtml(p) {
+    const badge = p.type === 'rental'
+      ? '<span class="mp-badge rental">KİRALIK</span>'
+      : '<span class="mp-badge sale">SATILIK</span>';
+    const img = p.cover ? `<img src="${p.cover}" alt="">` : '';
+    return `<div class="map-popup">${img}<div class="mp-body">${badge}
+      <p class="mp-title">${p.title}</p>
+      <p class="mp-meta">${p.make} ${p.model} ${p.year ? '· ' + p.year : ''} · ${p.city}</p>
+      <p class="mp-price">${p.price}</p>
+      <a class="mp-link" href="${p.url}">İlanı Gör →</a></div></div>`;
+  }
+
+  function load() {
+    const params = new URLSearchParams();
+    const t = document.getElementById('f-type').value;
+    const mk = document.getElementById('f-make').value.trim();
+    const ct = document.getElementById('f-city').value.trim();
+    if (t) params.set('listing_type', t);
+    if (mk) params.set('make', mk);
+    if (ct) params.set('city', ct);
+
+    document.getElementById('map-count').textContent = 'Yükleniyor…';
+    fetch('{% url "listings:map_data" %}?' + params.toString())
+      .then(r => r.json())
+      .then(geo => {
+        cluster.clearLayers();
+        const markers = [];
+        geo.features.forEach(f => {
+          const [lng, lat] = f.geometry.coordinates;
+          const m = L.marker([lat, lng], { icon: goldIcon }).bindPopup(popupHtml(f.properties));
+          cluster.addLayer(m);
+          markers.push([lat, lng]);
+        });
+        document.getElementById('map-count').textContent =
+          geo.features.length + ' ilan haritada';
+        if (markers.length) map.fitBounds(markers, { padding: [60, 60], maxZoom: 12 });
+      })
+      .catch(() => {
+        document.getElementById('map-count').textContent = 'Veri yüklenemedi';
+      });
+  }
+
+  document.getElementById('f-apply').addEventListener('click', load);
+  ['f-make', 'f-city'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') load(); });
+  });
+
+  // Tema değişince harita katmanını değiştir
+  const observer = new MutationObserver(() => {
+    map.removeLayer(tiles);
+    tiles = L.tileLayer(tileUrl(), { attribution: '&copy; OpenStreetMap, &copy; CARTO', maxZoom: 19 }).addTo(map);
+  });
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  load();
+})();
+</script>
+{% endblock %}

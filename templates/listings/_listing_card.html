@@ -1,0 +1,81 @@
+{% load static %}
+<article class="bg-white rounded-2xl overflow-hidden border border-slate-100 card-hover shadow-sm" data-animate="card">
+  <div class="card-media relative">
+    <a href="{% url 'listings:detail' listing.slug %}" class="block">
+      {% with cover=listing.photos.first %}
+        {% if cover %}
+          <img src="{{ cover.image.url }}" alt="{{ listing.title }}" class="car-img w-full object-cover" loading="lazy" />
+        {% else %}
+          <div class="car-img w-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center"><svg class="w-16 h-16 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10m10 0H3m10 0h2m4 0h1a1 1 0 001-1v-4.586a1 1 0 00-.293-.707l-3.414-3.414A1 1 0 0016.586 6H13"/></svg></div>
+        {% endif %}
+      {% endwith %}
+    </a>
+    <!-- Badges -->
+    <div class="absolute top-3 left-3 flex gap-2 flex-wrap pointer-events-none">
+      {% if listing.listing_type == 'rental' %}
+        <span class="bg-violet-600 text-white text-xs font-bold px-2.5 py-1 rounded-full">KİRALIK</span>
+      {% else %}
+        <span class="bg-primary-600 text-white text-xs font-bold px-2.5 py-1 rounded-full">SATILIK</span>
+      {% endif %}
+      {% if listing.is_featured %}
+        <span class="bg-yellow-400 text-yellow-900 text-xs font-bold px-2.5 py-1 rounded-full">ÖNE ÇIKAN</span>
+      {% endif %}
+    </div>
+    <!-- Status -->
+    {% if listing.status != 'active' %}
+      <div class="absolute inset-0 bg-black/50 flex items-center justify-center pointer-events-none">
+        <span class="text-white font-black text-lg uppercase tracking-wider">{{ listing.get_status_display }}</span>
+      </div>
+    {% endif %}
+    <!-- Hızlı Bakış tetikleyici -->
+    <button type="button" class="quickview-trigger"
+      data-title="{{ listing.title|escape }}"
+      data-price="{{ listing.price|floatformat:0 }} TL"
+      data-specs="{% if listing.vehicle %}{{ listing.vehicle.make }} {{ listing.vehicle.model }} • {{ listing.vehicle.year }} • {{ listing.vehicle.get_fuel_type_display }} • {{ listing.city }}{% else %}{{ listing.city }}{% endif %}"
+      data-img="{% with cover=listing.photos.first %}{% if cover %}{{ cover.image.url }}{% endif %}{% endwith %}"
+      data-url="{% url 'listings:detail' listing.slug %}"
+      data-type="{{ listing.listing_type }}">
+      👁 Hızlı Bakış
+    </button>
+  </div>
+
+  <div class="p-4">
+    <div class="flex items-start justify-between gap-2 mb-2">
+      <a href="{% url 'listings:detail' listing.slug %}" class="font-bold text-slate-900 hover:text-primary-600 transition-colors leading-snug line-clamp-2 flex-1">{{ listing.title }}</a>
+      <!-- Favorite button -->
+      {% if user.is_authenticated %}
+        <button data-favorite-btn data-listing-id="{{ listing.id }}"
+          class="shrink-0 p-1.5 rounded-lg hover:bg-red-50 transition-colors group"
+          aria-label="Favorilere ekle">
+          <svg data-fav-icon class="w-5 h-5 text-slate-400 group-hover:text-red-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+          </svg>
+        </button>
+      {% endif %}
+    </div>
+
+    <!-- Specs -->
+    {% if listing.vehicle %}
+      <p class="text-sm text-slate-500 mb-3">
+        {{ listing.vehicle.make }} {{ listing.vehicle.model }} • {{ listing.vehicle.year }} • {{ listing.vehicle.get_fuel_type_display }}
+      </p>
+    {% endif %}
+
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="text-xl font-black text-primary-600">{{ listing.price|floatformat:0 }} TL</p>
+        {% if listing.listing_type == 'rental' %}<p class="text-xs text-slate-400 -mt-0.5">/ gün</p>{% endif %}
+      </div>
+      <div class="flex items-center gap-3 text-xs text-slate-400">
+        <span class="flex items-center gap-0.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          {{ listing.view_count }}
+        </span>
+        <span class="flex items-center gap-0.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          {{ listing.city }}
+        </span>
+      </div>
+    </div>
+  </div>
+</article>

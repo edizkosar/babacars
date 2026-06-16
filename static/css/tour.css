@@ -1,0 +1,98 @@
+/* ════════════════════════════════════════════════════════════════
+   BabaCars – tour.css
+   Bağımsız onboarding / tanıtım turu (spotlight + tooltip).
+   ════════════════════════════════════════════════════════════════ */
+
+#tour-overlay {
+  position: fixed; inset: 0; z-index: 10000;
+  pointer-events: none;
+  opacity: 0; transition: opacity 0.3s ease;
+}
+#tour-overlay.active { opacity: 1; pointer-events: auto; }
+
+/* Spotlight: hedefin etrafını delik bırakıp kalanı karartır */
+#tour-spotlight {
+  position: absolute;
+  border-radius: 12px;
+  box-shadow: 0 0 0 9999px rgba(15, 17, 23, 0.78);
+  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+  border: 2px solid #C9A84C;
+}
+#tour-spotlight.no-target {
+  box-shadow: 0 0 0 9999px rgba(15, 17, 23, 0.82);
+  border-color: transparent;
+}
+
+/* Tooltip kartı */
+#tour-tooltip {
+  position: absolute;
+  width: 320px; max-width: calc(100vw - 32px);
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  padding: 1.25rem;
+  transition: top 0.4s cubic-bezier(0.22,1,0.36,1), left 0.4s cubic-bezier(0.22,1,0.36,1);
+  pointer-events: auto;
+}
+#tour-tooltip .tt-step {
+  font-size: 0.65rem; font-weight: 800; letter-spacing: 0.12em;
+  text-transform: uppercase; color: #C9A84C; margin-bottom: 0.4rem;
+}
+#tour-tooltip .tt-title {
+  font-size: 1.1rem; font-weight: 800; color: #111111;
+  margin: 0 0 0.5rem; line-height: 1.3; letter-spacing: -0.02em;
+}
+#tour-tooltip .tt-body {
+  font-size: 0.85rem; color: #6B7280; line-height: 1.6; margin: 0 0 1rem;
+}
+#tour-tooltip .tt-dots {
+  display: flex; gap: 5px; margin-bottom: 1rem;
+}
+#tour-tooltip .tt-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #E5DDD0; transition: background 0.2s, width 0.2s;
+}
+#tour-tooltip .tt-dot.active { background: #C9A84C; width: 18px; border-radius: 99px; }
+#tour-tooltip .tt-actions {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+}
+#tour-tooltip .tt-skip {
+  background: none; border: none; color: #9CA3AF; font-size: 0.78rem;
+  font-weight: 600; cursor: pointer; padding: 0.4rem 0;
+}
+#tour-tooltip .tt-skip:hover { color: #6B7280; }
+#tour-tooltip .tt-nav { display: flex; gap: 0.5rem; }
+.tt-btn {
+  border: none; border-radius: 8px; font-size: 0.8rem; font-weight: 700;
+  padding: 0.5rem 1rem; cursor: pointer; transition: background 0.2s, transform 0.1s;
+}
+.tt-btn:active { transform: scale(0.96); }
+.tt-btn-ghost { background: #F3F4F6; color: #374151; }
+.tt-btn-ghost:hover { background: #E5E7EB; }
+.tt-btn-primary { background: #C9A84C; color: #111111; }
+.tt-btn-primary:hover { background: #A8872E; }
+
+/* Tetikleyici "?" butonu (header) */
+#tour-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 50%;
+  background: transparent; border: 1.5px solid #E5DDD0;
+  color: #111111; cursor: pointer; transition: all 0.2s;
+}
+#tour-btn:hover { border-color: #C9A84C; color: #C9A84C; transform: scale(1.05); }
+
+/* Dark mode */
+[data-theme="dark"] #tour-tooltip { background: #1A1F2E; }
+[data-theme="dark"] #tour-tooltip .tt-title { color: #F1F5F9; }
+[data-theme="dark"] #tour-tooltip .tt-body { color: #94A3B8; }
+[data-theme="dark"] .tt-btn-ghost { background: #0F1117; color: #CBD5E1; }
+[data-theme="dark"] #tour-btn { border-color: rgba(255,255,255,0.18); color: #F1F5F9; }
+[data-theme="dark"] #tour-tooltip .tt-dot { background: #374151; }
+
+@media (max-width: 640px) {
+  #tour-tooltip { width: calc(100vw - 24px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #tour-spotlight, #tour-tooltip { transition: none !important; }
+}

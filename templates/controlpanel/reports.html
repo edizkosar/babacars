@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}Raporlar - Yönetim{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  {% include 'controlpanel/_panel_nav.html' %}
+
+  <div class="card overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead><tr class="border-b border-warm-border text-left bg-beige">
+          <th class="px-4 py-3 text-xs font-semibold uppercase tracking-widest text-ink-light">İlan</th>
+          <th class="px-4 py-3 text-xs font-semibold uppercase tracking-widest text-ink-light">Raporlayan</th>
+          <th class="px-4 py-3 text-xs font-semibold uppercase tracking-widest text-ink-light">Sebep</th>
+          <th class="px-4 py-3 text-xs font-semibold uppercase tracking-widest text-ink-light">Açıklama</th>
+          <th class="px-4 py-3 text-xs font-semibold uppercase tracking-widest text-ink-light">Durum</th>
+          <th class="px-4 py-3 text-xs font-semibold uppercase tracking-widest text-ink-light">İşlem</th>
+        </tr></thead>
+        <tbody>
+          {% for report in reports %}
+          <tr class="border-b border-warm-border/50 hover:bg-beige/50 transition-colors {% if not report.is_resolved %}border-l-4 border-l-gold{% endif %}" id="report-row-{{ report.id }}">
+            <td class="px-4 py-3 font-medium text-ink">
+              {% if report.listing %}
+                <a href="{% url 'listings:detail' report.listing.slug %}" class="hover:text-gold">{{ report.listing.title|truncatewords:5 }}</a>
+              {% else %}
+                <span class="text-ink-light">Silinmiş</span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-3 text-ink-light">{{ report.reporter.email }}</td>
+            <td class="px-4 py-3">
+              <span class="badge text-xs
+                {% if report.reason == 'fake' %}bg-red-100 text-red-700
+                {% elif report.reason == 'spam' %}bg-orange-100 text-orange-700
+                {% elif report.reason == 'sold' %}bg-blue-100 text-blue-700
+                {% elif report.reason == 'wrong_info' %}bg-yellow-100 text-yellow-700
+                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                {{ report.get_reason_display }}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-ink-light max-w-xs truncate">{{ report.description|default:"-" }}</td>
+            <td class="px-4 py-3">
+              <span id="report-status-{{ report.id }}" class="badge text-xs {% if report.is_resolved %}bg-green-100 text-green-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                {% if report.is_resolved %}Çözüldü{% else %}Bekliyor{% endif %}
+              </span>
+            </td>
+            <td class="px-4 py-3">
+              {% if not report.is_resolved %}
+                <button onclick="resolveReport({{ report.id }})" class="btn btn-gold btn-sm" id="resolve-btn-{{ report.id }}">Çözüldü İşaretle</button>
+              {% else %}
+                <span class="text-xs text-green-600">Tamamlandı</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="px-4 py-8 text-center text-ink-light">Rapor bulunamadı.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+async function resolveReport(reportId) {
+  const res = await fetch(`/control-panel/reports/${reportId}/resolve/`, {
+    method: 'POST', headers: { 'X-CSRFToken': getCSRF() }
+  });
+  if (res.ok) {
+    const badge = document.getElementById(`report-status-${reportId}`);
+    badge.className = 'badge text-xs bg-green-100 text-green-700';
+    badge.textContent = 'Çözüldü';
+    const btn = document.getElementById(`resolve-btn-${reportId}`);
+    btn.outerHTML = '<span class="text-xs text-green-600">Tamamlandı</span>';
+    showToast('Rapor çözüldü.', 'success');
+  }
+}
+</script>
+{% endblock %}
