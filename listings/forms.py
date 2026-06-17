@@ -93,6 +93,12 @@ class VehicleForm(forms.ModelForm):
     def clean_num_seats(self):
         return self.cleaned_data.get('num_seats') or 5
 
+    def clean_paint_changed_parts(self):
+        return self.cleaned_data.get('paint_changed_parts') or 0
+
+    def clean_replaced_parts(self):
+        return self.cleaned_data.get('replaced_parts') or 0
+
 
 class PhotoForm(forms.ModelForm):
     class Meta:
