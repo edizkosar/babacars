@@ -235,6 +235,22 @@ INTERNAL_IPS = ['127.0.0.1']
 
 REST_FRAMEWORK['DEFAULT_SCHEMA_CLASS'] = 'drf_spectacular.openapi.AutoSchema'
 
+# Loglama: DEBUG=False olsa bile hataların (traceback) konsola/Render Logs'a düşmesi
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {'format': '[{levelname}] {asctime} {name} {message}', 'style': '{'},
+    },
+    'handlers': {
+        'console': {'class': 'logging.StreamHandler', 'formatter': 'verbose'},
+    },
+    'root': {'handlers': ['console'], 'level': 'INFO'},
+    'loggers': {
+        'django.request': {'handlers': ['console'], 'level': 'ERROR', 'propagate': False},
+    },
+}
+
 # ──────────────────────────────────────────────────────────────────
 # Production güvenlik ayarları (yalnızca DEBUG=False iken aktif)
 # ──────────────────────────────────────────────────────────────────
