@@ -4,8 +4,8 @@ from listings import selectors
 def create_listing(*, seller, listing_data: dict, vehicle_data: dict, photos: list) -> Listing:
     if not seller.is_seller():
         raise PermissionError('User is not a seller')
-    if len(photos) < 8:
-        raise ValueError('At least 8 photos are required')
+    if len(photos) < 4:
+        raise ValueError('En az 4 fotoğraf gerekli')
         
     listing = Listing(seller=seller, **listing_data)
     listing.save()

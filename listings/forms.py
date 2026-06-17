@@ -148,9 +148,10 @@ class SearchForm(forms.Form):
         required=False,
         widget=forms.Select(attrs={'class': 'form-select'})
     )
-    city = forms.CharField(
+    city = forms.ChoiceField(
+        choices=[('', 'Tüm Şehirler')] + [(p, p) for p in PROVINCES],
         required=False,
-        widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Şehir'})
+        widget=forms.Select(attrs={'class': 'form-select'})
     )
     ordering = forms.ChoiceField(
         choices=[
