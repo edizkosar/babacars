@@ -170,9 +170,11 @@ def create_listing_view(request):
         listing_form = ListingForm()
         vehicle_form = VehicleForm()
         
+    from listings.turkey_data import TR_DISTRICTS
     return render(request, 'listings/create.html', {
         'listing_form': listing_form,
-        'vehicle_form': vehicle_form
+        'vehicle_form': vehicle_form,
+        'tr_districts': TR_DISTRICTS,
     })
 
 @login_required
@@ -206,10 +208,12 @@ def edit_listing_view(request, slug):
         listing_form = ListingForm(instance=listing)
         vehicle_form = VehicleForm(instance=listing.vehicle)
         
+    from listings.turkey_data import TR_DISTRICTS
     return render(request, 'listings/edit.html', {
         'listing_form': listing_form,
         'vehicle_form': vehicle_form,
-        'listing': listing
+        'listing': listing,
+        'tr_districts': TR_DISTRICTS,
     })
 
 @login_required

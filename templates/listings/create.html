@@ -57,7 +57,37 @@
     </div>
   </form>
 </div>
+{{ tr_districts|json_script:"tr-districts-data" }}
 <script>
+// ── Şehir → İlçe bağımlı açılır menü ──
+(function () {
+  const DATA = JSON.parse(document.getElementById('tr-districts-data').textContent);
+  const citySel = document.getElementById('id_city');
+  const distSel = document.getElementById('id_district');
+  if (!citySel || !distSel) return;
+
+  function fillDistricts(selected) {
+    const city = citySel.value;
+    const list = DATA[city] || [];
+    distSel.innerHTML = '';
+    const ph = document.createElement('option');
+    ph.value = '';
+    ph.textContent = list.length ? 'İlçe seçin' : 'Önce şehir seçin';
+    distSel.appendChild(ph);
+    list.forEach(d => {
+      const o = document.createElement('option');
+      o.value = d; o.textContent = d;
+      if (d === selected) o.selected = true;
+      distSel.appendChild(o);
+    });
+  }
+
+  // Django'nun render ettiği seçili ilçeyi koru (düzenleme / hatalı gönderim)
+  const current = distSel.value;
+  fillDistricts(current);
+  citySel.addEventListener('change', () => fillDistricts(''));
+})();
+
 document.getElementById('id_photos')?.addEventListener('change', function() {
   const preview = document.getElementById('photo-preview');
   preview.innerHTML = '';

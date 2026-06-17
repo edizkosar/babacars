@@ -1,5 +1,6 @@
 from django import forms
 from listings.models import Listing, Vehicle, Photo
+from listings.turkey_data import PROVINCES, TR_DISTRICTS
 
 class ListingForm(forms.ModelForm):
     price = forms.DecimalField(
@@ -13,6 +14,14 @@ class ListingForm(forms.ModelForm):
             'step': '0.01',
         })
     )
+    city = forms.ChoiceField(
+        choices=[('', 'Şehir seçin')] + [(p, p) for p in PROVINCES],
+        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_city'})
+    )
+    district = forms.ChoiceField(
+        choices=[('', 'Önce şehir seçin')],
+        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_district'})
+    )
 
     class Meta:
         model = Listing
@@ -21,9 +30,18 @@ class ListingForm(forms.ModelForm):
             'listing_type': forms.Select(attrs={'class': 'form-select'}),
             'title': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'İlan başlığı'}),
             'description': forms.Textarea(attrs={'class': 'form-input', 'rows': 4}),
-            'city': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Şehir'}),
-            'district': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'İlçe'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Bağımlı ilçe: seçilen ilin ilçelerini geçerli seçenek yap
+        city = (self.data.get('city')
+                or self.initial.get('city')
+                or getattr(self.instance, 'city', None))
+        if city and city in TR_DISTRICTS:
+            self.fields['district'].choices = (
+                [('', 'İlçe seçin')] + [(d, d) for d in TR_DISTRICTS[city]]
+            )
 
 
 class VehicleForm(forms.ModelForm):

@@ -104,6 +104,8 @@ def resolve_coordinates(city: str, district: str = '', seed=None):
     c = _normalize(city)
     d = _normalize(district)
 
+    from listings.turkey_data import TR_PROVINCE_COORDS
+
     base = None
     if d:
         base = DISTRICT_COORDS.get((c, d))
@@ -111,6 +113,9 @@ def resolve_coordinates(city: str, district: str = '', seed=None):
         center = CITY_CENTER.get(c)
         if center:
             base = (center[1], center[2])
+    if base is None:
+        # 81 ilin merkez koordinatı (geniş kapsam)
+        base = TR_PROVINCE_COORDS.get(c)
     if base is None:
         return None
 
