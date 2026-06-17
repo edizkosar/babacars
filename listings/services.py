@@ -2,6 +2,38 @@ from django.db import transaction
 from listings.models import Listing, Vehicle, Photo, Favorite, ListingView, STATUS_CHOICES
 from listings import selectors
 
+
+def _optimize_image(uploaded_file, max_dim: int = 1600, quality: int = 82):
+    """
+    Yüklenen fotoğrafı küçültüp JPEG'e çevirir → upload hızlanır, depolama küçülür.
+    Herhangi bir sorunda orijinal dosyayı olduğu gibi döndürür (güvenli).
+    """
+    try:
+        import io
+        from PIL import Image, ImageOps
+        from django.core.files.base import ContentFile
+
+        img = Image.open(uploaded_file)
+        img = ImageOps.exif_transpose(img)          # telefon dönüklüğünü düzelt
+        if img.mode in ('RGBA', 'P', 'LA'):
+            img = img.convert('RGB')                 # WebP/PNG şeffaflık → JPEG
+        img.thumbnail((max_dim, max_dim))            # oranı koruyarak küçült
+
+        buf = io.BytesIO()
+        img.save(buf, format='JPEG', quality=quality, optimize=True)
+        buf.seek(0)
+
+        name = getattr(uploaded_file, 'name', 'photo')
+        base = name.rsplit('.', 1)[0] if '.' in name else name
+        return ContentFile(buf.read(), name=f'{base}.jpg')
+    except Exception:
+        try:
+            uploaded_file.seek(0)
+        except Exception:
+            pass
+        return uploaded_file
+
+
 def create_listing(*, seller, listing_data: dict, vehicle_data: dict, photos: list) -> Listing:
     if not seller.is_seller():
         raise PermissionError('User is not a seller')
@@ -18,7 +50,7 @@ def create_listing(*, seller, listing_data: dict, vehicle_data: dict, photos: li
         for idx, photo_file in enumerate(photos):
             Photo.objects.create(
                 listing=listing,
-                image=photo_file,
+                image=_optimize_image(photo_file),
                 is_cover=(idx == 0),
                 order=idx
             )
