@@ -2,7 +2,9 @@
 İlan föyü (PDF) üretimi — reportlab ile.
 Markasız, kurumsal görünümlü bir araç bilgi föyü oluşturur.
 """
+import os
 from io import BytesIO
+import reportlab
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib import colors
@@ -11,6 +13,21 @@ from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, HRFlowable,
 )
 from reportlab.lib.enums import TA_CENTER, TA_RIGHT
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfbase.pdfmetrics import registerFontFamily
+
+# Türkçe karakter desteği için Bitstream Vera (reportlab paketinde gelir)
+_FONT, _FONT_BOLD = 'Vera', 'Vera-Bold'
+try:
+    _fdir = os.path.join(os.path.dirname(reportlab.__file__), 'fonts')
+    pdfmetrics.registerFont(TTFont('Vera', os.path.join(_fdir, 'Vera.ttf')))
+    pdfmetrics.registerFont(TTFont('Vera-Bold', os.path.join(_fdir, 'VeraBd.ttf')))
+    registerFontFamily('Vera', normal='Vera', bold='Vera-Bold',
+                       italic='Vera', boldItalic='Vera-Bold')
+except Exception:
+    # Font bulunamazsa Helvetica'ya düş (Türkçe karakterler bozulabilir)
+    _FONT, _FONT_BOLD = 'Helvetica', 'Helvetica-Bold'
 
 INK = colors.HexColor('#111111')
 GOLD = colors.HexColor('#C9A84C')
@@ -37,21 +54,21 @@ def build_listing_pdf(listing) -> bytes:
     )
 
     styles = getSampleStyleSheet()
-    h_brand = ParagraphStyle('brand', parent=styles['Normal'], fontName='Helvetica-Bold',
+    h_brand = ParagraphStyle('brand', parent=styles['Normal'], fontName=_FONT_BOLD,
                              fontSize=20, textColor=INK, leading=22)
-    h_title = ParagraphStyle('title', parent=styles['Normal'], fontName='Helvetica-Bold',
+    h_title = ParagraphStyle('title', parent=styles['Normal'], fontName=_FONT_BOLD,
                              fontSize=16, textColor=INK, leading=20, spaceBefore=4)
-    p_meta = ParagraphStyle('meta', parent=styles['Normal'], fontName='Helvetica',
+    p_meta = ParagraphStyle('meta', parent=styles['Normal'], fontName=_FONT,
                             fontSize=9.5, textColor=GREY, leading=14)
-    p_price = ParagraphStyle('price', parent=styles['Normal'], fontName='Helvetica-Bold',
+    p_price = ParagraphStyle('price', parent=styles['Normal'], fontName=_FONT_BOLD,
                              fontSize=22, textColor=GOLD, alignment=TA_RIGHT, leading=24)
-    p_label = ParagraphStyle('label', parent=styles['Normal'], fontName='Helvetica-Bold',
+    p_label = ParagraphStyle('label', parent=styles['Normal'], fontName=_FONT_BOLD,
                              fontSize=8, textColor=GREY, leading=11)
-    p_section = ParagraphStyle('section', parent=styles['Normal'], fontName='Helvetica-Bold',
+    p_section = ParagraphStyle('section', parent=styles['Normal'], fontName=_FONT_BOLD,
                                fontSize=11, textColor=INK, leading=14, spaceBefore=2)
-    p_body = ParagraphStyle('body', parent=styles['Normal'], fontName='Helvetica',
+    p_body = ParagraphStyle('body', parent=styles['Normal'], fontName=_FONT,
                             fontSize=9.5, textColor=INK, leading=15)
-    p_foot = ParagraphStyle('foot', parent=styles['Normal'], fontName='Helvetica',
+    p_foot = ParagraphStyle('foot', parent=styles['Normal'], fontName=_FONT,
                             fontSize=8, textColor=GREY, alignment=TA_CENTER, leading=11)
 
     elems = []
