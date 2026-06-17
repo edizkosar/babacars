@@ -166,21 +166,28 @@ REST_FRAMEWORK = {
 # Doğrulama maillerindeki linkin tam adresi (production'da kendi domain'in)
 SITE_URL = os.environ.get('SITE_URL', 'http://127.0.0.1:8000')
 
-# E-posta ayarları — .env dosyasına EMAIL_HOST_USER ve EMAIL_HOST_PASSWORD ekleyin
+# ── E-posta gönderimi ──────────────────────────────────────────────
+# Öncelik: 1) Brevo HTTP API (Render SMTP engellediği için önerilen)
+#          2) Gmail SMTP (yerelde çalışır, çoğu ücretsiz host'ta engelli)
+#          3) Console (geliştirme — terminale yazar)
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+BREVO_API_KEY = os.environ.get('BREVO_API_KEY', '')
+DEFAULT_FROM_EMAIL = os.environ.get(
+    'DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'noreply@babacars.com'
+)
 
-if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
+if BREVO_API_KEY:
+    EMAIL_BACKEND = 'anymail.backends.brevo.EmailBackend'
+    ANYMAIL = {'BREVO_API_KEY': BREVO_API_KEY}
+elif EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
     EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
     EMAIL_USE_TLS = True
-    EMAIL_TIMEOUT = 20  # SMTP yanıt vermezse 20 sn sonra vazgeç (sonsuz takılma olmasın)
-    DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+    EMAIL_TIMEOUT = 20  # SMTP yanıt vermezse 20 sn sonra vazgeç
 else:
-    # Credentials yoksa terminale yaz (geliştirme)
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-    DEFAULT_FROM_EMAIL = 'noreply@babacars.com'
 
 # django-axes: brute force koruması
 AUTHENTICATION_BACKENDS = [
