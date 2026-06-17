@@ -1,3 +1,4 @@
+from django.db import transaction
 from listings.models import Listing, Vehicle, Photo, Favorite, ListingView, STATUS_CHOICES
 from listings import selectors
 
@@ -6,20 +7,22 @@ def create_listing(*, seller, listing_data: dict, vehicle_data: dict, photos: li
         raise PermissionError('User is not a seller')
     if len(photos) < 4:
         raise ValueError('En az 4 fotoğraf gerekli')
-        
-    listing = Listing(seller=seller, **listing_data)
-    listing.save()
-    
-    Vehicle.objects.create(listing=listing, **vehicle_data)
-    
-    for idx, photo_file in enumerate(photos):
-        Photo.objects.create(
-            listing=listing,
-            image=photo_file,
-            is_cover=(idx == 0),
-            order=idx
-        )
-        
+
+    # Hepsi-ya-hiç: araç veya foto kaydı patlarsa ilan da kaydedilmesin (yarım ilan kalmasın)
+    with transaction.atomic():
+        listing = Listing(seller=seller, **listing_data)
+        listing.save()
+
+        Vehicle.objects.create(listing=listing, **vehicle_data)
+
+        for idx, photo_file in enumerate(photos):
+            Photo.objects.create(
+                listing=listing,
+                image=photo_file,
+                is_cover=(idx == 0),
+                order=idx
+            )
+
     return listing
 
 def update_listing(*, user, listing_id: int, listing_data: dict = None, vehicle_data: dict = None) -> Listing:
@@ -148,7 +151,10 @@ def report_listing(*, reporter, listing_id: int, reason: str, description: str =
 
 def get_vehicle_valuation(*, listing_id: int) -> dict:
     listing = selectors.get_listing_by_id(listing_id=listing_id)
-    v = listing.vehicle
+    try:
+        v = listing.vehicle
+    except Exception:
+        return {'available': False}
     data = selectors.get_valuation_data(make=v.make, model=v.model, year=v.year)
     if not data['count'] or data['count'] < 2:
         return {'available': False}

@@ -80,7 +80,12 @@ def get_valuation_data(*, make: str, model: str, year: int) -> dict:
 
 
 def get_similar_listings(*, listing, limit: int = 4) -> QuerySet:
+    # Aracı olmayan (yarım) ilanlar için güvenli davran
+    try:
+        make = listing.vehicle.make
+    except Exception:
+        return Listing.objects.none()
     return Listing.objects.filter(
         status='active',
-        vehicle__make__iexact=listing.vehicle.make,
+        vehicle__make__iexact=make,
     ).exclude(id=listing.id).select_related('vehicle').prefetch_related('photos')[:limit]

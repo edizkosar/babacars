@@ -185,7 +185,14 @@ def edit_listing_view(request, slug):
     except Exception:
         messages.error(request, 'İlan bulunamadı.')
         return redirect('listings:index')
-        
+
+    # Aracı olmayan (yarım) ilan düzenlenemez — kullanıcıyı bilgilendir
+    try:
+        _ = listing.vehicle
+    except Exception:
+        messages.error(request, 'Bu ilan eksik oluşturulmuş, düzenlenemiyor. Lütfen yeni bir ilan oluşturun.')
+        return redirect('dashboard:dashboard')
+
     if request.method == "POST":
         listing_form = ListingForm(request.POST, instance=listing)
         vehicle_form = VehicleForm(request.POST, instance=listing.vehicle)
